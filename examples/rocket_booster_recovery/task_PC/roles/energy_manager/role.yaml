@@ -1,0 +1,20 @@
+schema_version: 1
+name: rocket_booster_recovery_energy_manager
+kind: role
+version: 1.0.0
+protocol_version: 1
+stability: stable
+description: Fuel-feasible vertical energy-management specialist.
+compatibility: {praxist_core: ">=0.3.0,<1.0", python: ">=3.11"}
+dependencies: []
+capabilities: [role.skill, control.energy_management]
+role:
+  role_id: energy_manager
+  legacy_role_id: energy_manager
+  display_name: Energy Manager
+  role_kind: peer
+  default_model_profile_ref: cheap_peer
+  output_schema_ref: core:finding.v1
+  tool_scope: [filesystem.read_write_run_dir, evaluation_tools.peer, frontier_tools.peer, finding_graph_query.peer]
+code: []
+assets: [skill.md]

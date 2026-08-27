@@ -1,0 +1,168 @@
+## Generation Context
+
+You are in **Generation {{ gen_id }}** of the current machine learning run.
+
+The task-specific block remains the source of truth for evaluator usage,
+prediction artifacts, valid data, and result reporting.
+
+Praxist may provide DIG-Lite selected contracts, frontier lane summaries, Gems when
+enabled, and peer-local memory. Use them as context and constraints. Do not copy
+every Gem blindly, and do not mutate Praxist-maintained system state directly.
+
+{% if research_agenda is mapping and research_agenda %}
+### Panel Agenda
+
+The Machine Learning PI panel reviewed previous findings and produced this
+agenda. Follow your peer contract when one is assigned.
+
+{% set mo = research_agenda.mainline_observation or {} %}
+#### Current Panel Read
+
+- Visible approach families: {{ mo.current_dominant_mechanisms or [] }}
+- Main risk: {{ mo.main_risk or "(unspecified)" }}
+- Key balance: {{ mo.key_tradeoff or "(unspecified)" }}
+
+{% set my_contract = (research_agenda.peer_contracts or {}).get(peer_id) %}
+{% if my_contract %}
+#### Your Peer Contract
+
+- Role: `{{ my_contract.role }}`
+- Role meaning: {{ (peer_role_descriptions or {}).get(my_contract.role, "Use the task-local role skill and task block.") }}
+- Target hypothesis or objective: {{ my_contract.target_hypothesis or "(choose a concrete task-aligned objective)" }}
+- Success signal: {{ my_contract.success_signal or "Publish useful evaluator-backed evidence or a reproducible diagnostic." }}
+
+When publishing a finding tied to this contract, include compact `extra`
+metadata such as:
+
+```json
+{"peer_role":"{{ my_contract.role }}","target_hypothesis":"{{ my_contract.target_hypothesis or '' }}","evidence_stage":"<task-defined preliminary|aligned|complete|diagnostic label>","protocol_name":"<eval mode>","next_step_intent":"<short intent>","parent_candidate":"<optional>","parent_usage":"validate|repair|complete_validation|falsify|compare|ablate|audit|none","is_negative":false,"evidence_valence":"positive|neutral|negative|mixed","failure_mode":"","disconfirming_claim_ids":[]}
+```
+If `parent_candidate` names a validation candidate, set `parent_usage` to a
+follow-up action such as `validate`, `complete_validation`, `repair`,
+`falsify`, `ablate`, or `audit`; do not mark that parent as `none` or
+`preserve`.
+{% else %}
+No peer-specific contract was found for `{{ peer_id }}`. Choose a useful
+task-aligned direction from the task context, frontier, and shared findings.
+{% endif %}
+
+{% else %}
+{% if frontier_summary %}
+### Previous Frontier Snapshot
+
+Use prior work as evidence, not as something to copy blindly.
+
+{% for entry in frontier_summary %}
+- Gen {{ entry.generation_id }} #{{ entry.rank }}: {{ entry.variant_name }}
+  - Primary metric: {{ entry.metric_value }}
+{% endfor %}
+{% else %}
+### First Generation
+
+There is no prior run evidence yet. Use the task context, baseline records, and
+role quick cards to create an early valid evaluator path, then improve it with
+controlled experiments.
+{% endif %}
+
+{% if validation_candidates is defined and validation_candidates %}
+### Validation Signals
+
+These are not clean frontier facts. Use them as leads for validation, repair,
+falsification, comparison, ablation, or full scoring.
+
+{% for entry in validation_candidates %}
+- Gen {{ entry.generation_id | default("?") }}: {{ entry.variant_name | default("unknown") }}
+  - Status: {{ entry.artifact_signal_status | default(entry.result_status | default("signal")) }}
+  - Suggested follow-up: {{ entry.recommended_next_step | default(entry.next_step_intent | default("validate")) }}
+{% endfor %}
+{% endif %}
+
+{% if variant_hint and variant_hint.strip() %}
+### Exploration Hint
+
+{{ variant_hint }}
+{% endif %}
+{% endif %}
+
+{% if incubator_top_k is defined and (incubator_top_k or validation_candidate_top_k or diagnostic_control_top_k) %}
+### Strong Signal Visibility
+
+These compact views separate what can be used as a parent from what needs
+validation or diagnosis. Do not collapse these scopes.
+
+{% if incubator_top_k %}
+**Parentable incubator signals**:
+{% for entry in incubator_top_k %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }}{% if entry.frontier_lane %} lane=`{{ entry.frontier_lane }}`{% endif %}{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %}
+{% endfor %}
+{% endif %}
+{% if validation_candidate_top_k %}
+**Revalidate-only signals**:
+{% for entry in validation_candidate_top_k %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }}{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %} next=`{{ entry.recommended_next_step|default("complete_scored_validation") }}`
+{% endfor %}
+{% endif %}
+{% if diagnostic_control_top_k %}
+**Diagnostic-only signals**:
+{% for entry in diagnostic_control_top_k %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }}{% if entry.frontier_lane %} lane=`{{ entry.frontier_lane }}`{% endif %}{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %}
+{% endfor %}
+{% endif %}
+
+{% endif %}
+
+{% if research_loop_control is defined and research_loop_control %}
+### Research Loop Control Feedback
+
+This is advisory feedback from the last completed generation boundary. Use it
+to keep the next generation productive, but do not treat it as a hard
+constraint unless the task prompt says so.
+
+{% if research_loop_control.peer_mix is defined %}
+- Peer mix: {{ research_loop_control.peer_mix | tojson }}
+{% endif %}
+{% if research_loop_control.stop_audit is defined %}
+- Stop audit: {{ research_loop_control.stop_audit | tojson }}
+{% endif %}
+
+{% endif %}
+
+## Evidence Reporting Reminder
+
+For mature results, publish the primary metric unchanged and use a label from
+the task's `complete_stage_labels`, plus `metrics.scored_complete=true` or an
+equivalent task-approved authority marker. Despite the compatibility name, the
+list may contain an explicitly authorized reduced mode. Preserve its actual
+stage and copy ratio facts when the task contract uses them. For modes the task
+marks non-mature, use task-candidate or diagnostic metadata instead of
+presenting them as confirmed evidence.
+For ordinary task-authorized, protocol-passed, non-suspect results, preserve the
+evaluator's shared `performance` source label and every configured Pareto-axis
+metric. Praxist chooses confirmed and lower-admission incubator targets
+independently; do not have the Peer relabel the same result based on a guessed
+final target. Explicit incubator sources remain valid only when the task
+evaluator contract intentionally emits them with `incubator_axis` and
+`incubator_candidate_reason`.
+Also include expected versus completed protocol budget and a
+`protocol_integrity_passed` signal when the evaluator exposes it. If actual work
+drifts from the user-approved protocol, do not mark it as clean mature evidence.
+If the task's ranking policy uses variance, confidence/lower-bound robustness,
+risk, regret, or Pareto dominance, publish those robust metric fields alongside
+the raw primary metric.
+Set `extra.is_negative=true` and `extra.evidence_valence="negative"` for
+failed, dominated, constraint-violating, non-generalizing, falsifying,
+ablation-null, or protocol-invalid results. Include a compact
+`extra.failure_mode` and any affected `extra.disconfirming_claim_ids` so later
+PI synthesis can retrieve the negative evidence instead of repeating it.
+Use the task's stage labels and protocol-intent permissions. The template
+default treats preliminary evidence as immature and lets an aligned protocol
+prioritize follow-up when it shares complete-protocol metric semantics and
+near-complete coverage. An explicitly different user-owned protocol takes
+precedence, while actual stage and effort/coverage remain visible. Lanes marked
+`parent_eligible: false` never supply durable parents.

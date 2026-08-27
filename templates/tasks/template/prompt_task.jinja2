@@ -1,0 +1,45 @@
+## Task Template Prompt Block
+
+Task: {{ task_spec.task_name }}
+
+This template prompt is a placeholder. Replace it with task-owned instructions
+before running real research.
+
+### Research Direction
+
+{{ task_spec.research_direction }}
+
+### Working Rules
+
+- Follow the task owner's declared protocol intent. Use only the evaluator modes
+  authorized for the requested purpose, but do not assume that partial, scout,
+  or reduced protocols are globally forbidden. Report actual effort, coverage,
+  and stage so an undeclared deviation cannot impersonate mature evidence.
+
+- Keep candidate work inside the task project's declared problem statement.
+- Write outputs under the Praxist run directory, not into the task source tree.
+- Use the task-local public evaluation entrypoint declared in `task.yaml`.
+- Preserve negative and inconclusive findings when they may help later review.
+- Do not modify Praxist core or generic plugins to improve a task result.
+- Publish evidence through structured findings and task result summaries; do
+  not hand-write Praxist frontier, Gems, prompt-layout, research-memory, or
+  diagnostic state. Leaderboards and PI evidence packs are derived context,
+  not sources of promotion truth.
+- Preserve preliminary, aligned, partial, failed, diagnostic, smoke, repair,
+  or late-after-boundary evidence as validation signals when it may help later
+  agents validate or falsify a direction. A real task owns its stage labels.
+  Under the recommended default, an aligned early-ranking protocol preserves
+  complete-protocol metric semantics and near-complete coverage while reducing
+  task-defined effort. Follow an explicit task-owned permission table when it
+  authorizes a different reduced mode.
+- For real tasks, preserve the evaluator's shared `performance` source label
+  for ordinary task-authorized, protocol-passed, non-suspect results. Confirmed
+  and the lower-admission durable incubator independently select from that
+  source; do not make Peers guess the final target lane.
+
+### Expected Output
+
+Publish structured findings with the task's primary metric, relevant auxiliary
+metrics, evidence paths, actual stage/effort/coverage metadata required by the
+task contract, and enough context for PI / Chair review. Only lanes declared
+with `parent_eligible: true` may supply durable parents.

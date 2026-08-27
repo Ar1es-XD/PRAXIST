@@ -1,0 +1,28 @@
+schema_version: 1
+name: finding_graph_mvp
+kind: graph_maintainer
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Compatibility descriptor for the existing finding graph guidance engine.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies:
+  - kind: workflow_stage
+    name: research_loop
+capabilities:
+  - graph.finding_graph
+  - graph.sidecar_index
+  - graph.prompt_guidance
+  - graph.unlinked_recent_diversity
+  - graph.agent_declared_links
+  - graph.non_blocking
+entrypoint: adapter:create_graph_maintainer
+code:
+  - adapter.py
+  - atomic_io.py
+  - engine.py
+  - cli.py
+  - viz.py
+assets: []

@@ -1,0 +1,73 @@
+{
+  "optimizer": "asam",
+  "variant_path": "",
+  "tier": "T3",
+  "datasets": [
+    "cifar10",
+    "cifar100",
+    "tiny-imagenet"
+  ],
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "epochs": 20,
+  "batch_size": 256,
+  "bf16": true,
+  "physical_gpu": 3,
+  "physical_gpu_note": null,
+  "per_dataset": {
+    "cifar10": {
+      "num_seeds": 5,
+      "test_accuracy": {
+        "mean": 0.9088,
+        "std": 0.006375892094444511,
+        "min": 0.8986,
+        "max": 0.9167
+      },
+      "train_test_gap": {
+        "mean": 0.036216000000000005,
+        "std": 0.002268687726418062
+      },
+      "train_time_seconds": {
+        "mean": 110.73270139694213
+      }
+    },
+    "cifar100": {
+      "num_seeds": 5,
+      "test_accuracy": {
+        "mean": 0.71968,
+        "std": 0.0018399999999999877,
+        "min": 0.7167,
+        "max": 0.7222
+      },
+      "train_test_gap": {
+        "mean": 0.172512,
+        "std": 0.0022316128696527817
+      },
+      "train_time_seconds": {
+        "mean": 110.45294418334962
+      }
+    },
+    "tiny-imagenet": {
+      "num_seeds": 5,
+      "test_accuracy": {
+        "mean": 0.572,
+        "std": 0.003929885494515073,
+        "min": 0.5665,
+        "max": 0.5767
+      },
+      "train_test_gap": {
+        "mean": 0.315844,
+        "std": 0.004090352552042435
+      },
+      "train_time_seconds": {
+        "mean": 286.00966267585756
+      }
+    }
+  },
+  "total_wall_clock_seconds": 2541.9291133880615
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "praxist.dataset_metadata.v1",
+  "dataset_id": "tiny-imagenet-200",
+  "display_name": "Tiny-ImageNet-200",
+  "num_classes": 200,
+  "image_size": 64,
+  "expected_layout": {
+    "root": "<resolved_data_dir>/tiny-imagenet-200",
+    "train": "train/<wnid>/images/*.JPEG",
+    "validation": "val/<wnid>/*.JPEG"
+  },
+  "metadata_assets": {
+    "wnids": "wnids.txt",
+    "class_names": "class_names.tsv"
+  },
+  "raw_dataset_policy": "external",
+  "resolver": "../resolve_dataset.py",
+  "notes": [
+    "Only lightweight class metadata is packaged with the task project.",
+    "Raw images are not part of the task source tree."
+  ]
+}

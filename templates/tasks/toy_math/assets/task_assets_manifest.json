@@ -1,0 +1,24 @@
+{
+  "schema_version": "praxist.task_asset_closure.v1",
+  "task_id": "toy_math",
+  "raw_dataset_packaged_with_task": false,
+  "harness": {
+    "policy": "resolve-only fixture; add deterministic checkers if expanded"
+  },
+  "baselines": {
+    "curated_results": "assets/baselines/results.jsonl",
+    "summary": "assets/baselines/curated_baseline_summary.md"
+  },
+  "literature": [
+    "assets/literature/toy_math_prior_art.md"
+  ],
+  "dataset_metadata": {
+    "policy": "no external dataset required for the resolve-only fixture"
+  },
+  "reference_implementations": {
+    "manifest": "assets/reference_implementations/manifest.json",
+    "root": "assets/reference_implementations",
+    "policy": "optional references; not used by the resolve-only fixture"
+  },
+  "regression_fixtures": []
+}

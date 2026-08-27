@@ -1,0 +1,28 @@
+schema_version: 1
+name: template_pareto_tiered
+kind: evaluation
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Placeholder tiered evaluation contract for task-template authors.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - evaluation.placeholder
+  - evaluation.pareto_frontier
+  - evaluation.partial_summary_preservation
+evaluation:
+  primary_metrics:
+    - deterministic_score
+  efficiency_metrics:
+    - cost
+  auxiliary_metrics: []
+  required_tiers: []
+entrypoint: evaluator:create_evaluation
+agent_entrypoint: run.py
+code:
+  - evaluator.py
+  - run.py
+assets: []

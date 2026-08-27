@@ -1,0 +1,71 @@
+services:
+  collector:
+    image: ${COLLECTOR_IMAGE:?COLLECTOR_IMAGE is required}
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8110:8000"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import json,urllib.request;
+          assert json.load(urllib.request.urlopen('http://127.0.0.1:8000/healthz',timeout=2))['status']=='ok'
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 10s
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  retention:
+    image: ${COLLECTOR_IMAGE:?COLLECTOR_IMAGE is required}
+    restart: unless-stopped
+    init: true
+    command:
+      - praxist-retention
+      - --interval-seconds
+      - "86400"
+      - --health-file
+      - /tmp/praxist-retention-health
+    env_file:
+      - .env
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import os,time;
+          age=time.time()-os.stat('/tmp/praxist-retention-health').st_mtime;
+          assert 0 <= age <= 90000
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"

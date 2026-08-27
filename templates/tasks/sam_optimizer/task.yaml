@@ -1,0 +1,622 @@
+schema_version: 1
+task_version: 0.1.0
+task_id: sam_optimizer
+task_name: "SAM Optimizer Variants Research"
+description_file: description.md
+
+research_direction: |
+  We study sharpness-aware minimization (SAM) and SAM-family variants.
+  Goal: design and empirically validate a SAM variant that improves the
+  accuracy-efficiency-stability tradeoff over vanilla SAM on the task's
+  tiered ResNet-18 image-classification benchmark.
+
+  RESEARCH SCOPE — STRICT (do not cross these lines):
+  - Variant must be a standalone PyTorch `Optimizer` subclass.
+  - Must be drop-in: callable as `optimizer.step()` in any standard
+    PyTorch training loop. No custom training loop modifications, no
+    framework-specific hooks, no model architecture changes.
+  - Evaluation protocol is fixed by the task-local tiered evaluator:
+    ResNet-18, cosine LR, batch size 256, the 5-seed pool
+    {42,43,44,45,46}, and the T1/T2/T3 seed/dataset/epoch cells declared
+    in `tiered_eval` below. T3 is the full mature benchmark: CIFAR-10,
+    CIFAR-100, Tiny-ImageNet, 20 epochs, 5 seeds.
+
+  Within this scope, you have full freedom along 6 design axes (see
+  evaluation.diversity_dimensions below) — innovation must happen
+  along these axes, not by relaxing the scope.
+
+  Target outcomes:
+  - outperform vanilla SAM on CIFAR-100 and/or achieve a better
+    overhead-adjusted result
+  - keep compute overhead preferably <= 1.6x SGD and strictly < 2x SGD
+  - explain gains through ablations
+
+evaluation:
+  # v2026-05-01: changed from `test_accuracy_cifar100` to
+  # `mean_test_accuracy` (cross-dataset aggregate emitted by
+  # run_benchmark.py at the multi-benchmark.json top level). The
+  # previous design used cifar10 + cifar100 as separate Pareto axes
+  # — they are highly correlated (same architecture, same protocol,
+  # similar image distribution) so they form ONE accuracy dimension,
+  # not two. Aggregating across all completed datasets gives a single
+  # truly-orthogonal accuracy axis. Combined with efficiency, gap,
+  # and sharpness anchors, the 4-axis Pareto becomes properly
+  # orthogonal.
+  primary_metric: mean_test_accuracy
+  direction: maximize
+  # R6-N1 hardening: REQUIRE every promotable finding to carry a `tier`
+  # field in metrics. Defends against peers that forget to populate the
+  # tier metadata that the frontier filter uses to reject T1/T2 results.
+  # When True, findings without `tier` are rejected from primary-metric
+  # promotion (see frontier.promote()'s tier filter).
+  requires_tier: true
+  # v2026-05-01: aux_metrics aligned with new orthogonal Pareto axes.
+  # `train_test_gap` (raw, ambiguous about which dataset) and
+  # `test_accuracy_cifar10` removed — peers now publish
+  # `mean_train_test_gap` (cross-dataset agg) and per-dataset detail.
+  # Used by viz tools that read `aux[0]` as a secondary axis.
+  aux_metrics:
+    - mean_train_test_gap
+    - sharpness_top_eigen
+    - wall_time_seconds_total
+  seeds: [42, 43, 44, 45, 46]
+  aggregation: mean_and_std
+  maturity_policy:
+    min_effort_ratio: 0.75
+    min_coverage_ratio: 0.80
+    require_ratio_gate: true
+    complete_stage_labels: [T3]
+    preliminary_stage_labels: [T1, T2]
+  constructive_peer_mix_enabled: true
+  constructive_target_ratio: 0.75
+  launch_guard:
+    enabled: true
+    # Observed p90 runtimes; close-grade is the protocol authorized to satisfy
+    # normal close and its estimate*safety must fit plus drain.
+    estimated_heavy_eval_minutes: 60
+    estimated_close_grade_eval_minutes: 60
+    safety_factor: 1.25
+
+  # Must-explore axes (Praxist Plan C, retained
+  # under v2026-05-04):
+  # Round-robin-assigned to the first N peers of **gen 0 only**
+  # (the only gen with strategy=="explore" under the new design;
+  # gen ≥ 1 is "pi_directed" and peers get role contracts from the
+  # PI agenda instead). Peers beyond N in gen 0 get the standard
+  # generic-explore hint.
+  # Why these 3: 2026-04-30 cohort post-mortem (78 variants over 11h)
+  # showed peers saturated the perturbation-signal axis but never
+  # touched these task-spec-listed in-scope structural directions.
+  must_explore_axes:
+    - name: "cosine rho schedule"
+      description: "rho varying along training progress (cosine/linear/warmup-decay) — store a step counter in optimizer state, compute rho inside step()"
+    - name: "lookahead k-step / multi-step adversarial ascent"
+      description: "k>1 ascent steps before descending (k=2,3 fits within 2x SGD with buffer reuse); SAM-K, SAGM family"
+    - name: "subspace / random-projection SAM"
+      description: "perturb only on a random low-dim subspace per step (Gaussian projection or Bernoulli mask on gradient); reduces effective perturbation dimension"
+
+  # Multi-anchor frontier (Praxist v2026-04-30+, orthogonal
+  # axes since v2026-05-01). The 4 Pareto axes (primary +
+  # 3 anchors) are now mutually orthogonal:
+  #   1. mean_test_accuracy   — accuracy dimension (cross-dataset agg)
+  #   2. wall_time_seconds_total — same-environment efficiency dimension
+  #   3. mean_train_test_gap  — generalization dimension (cross-dataset)
+  #   4. sharpness_top_eigen  — flatness dimension (Hessian top eigenvalue)
+  # Previously cifar10 was a separate axis — it is highly correlated
+  # with cifar100 accuracy and was inflating the Pareto front.
+  anchor_metrics:
+    - {name: wall_time_seconds_total, direction: minimize}  # observed efficiency
+    - {name: mean_train_test_gap,      direction: minimize}  # generalization (cross-dataset agg)
+    - {name: sharpness_top_eigen,      direction: minimize}  # flatness (Hessian top eigenvalue)
+
+  # Lane-based frontier keeps mature optimizer candidates, promising partial
+  # validation signals, and controls visible as separate evidence streams.
+  # This avoids treating all useful but immature evidence as failed primary
+  # leaderboard material.
+  # The evaluator emits `performance` for clean complete T3 results so both
+  # confirmed and incubator selectors receive a reachable mature source.
+  frontier_lanes:
+    - name: confirmed
+      description: "Task-local T3 promotable SAM candidates with complete core metrics and full coverage."
+      k: 3
+      cumulative_cap: 12
+      axes:
+        - {name: mean_test_accuracy, direction: maximize}
+        - {name: wall_time_seconds_total, direction: minimize}
+        - {name: mean_train_test_gap, direction: minimize}
+      optional_axes:
+        - {name: sharpness_top_eigen, direction: minimize}
+      include_lanes: [confirmed, performance]
+      parent_eligible: true
+      require_metrics: [mean_test_accuracy, wall_time_seconds_total]
+      require_falsey_metrics: [is_smoke_eval, partial, scout_only, validation_only, validation_only_result, late_after_generation_boundary, suspect_protocol, suspect_leakage]
+    - name: incubator
+      description: "Lower-admission durable long-term SAM variant library for complete non-suspect Pareto/new-high T3 candidates that need follow-up before confirmed promotion."
+      k: 8
+      cumulative_cap: 48
+      admit_new_high: true
+      axes:
+        - {name: mean_test_accuracy, direction: maximize}
+        - {name: wall_time_seconds_total, direction: minimize}
+        - {name: mean_train_test_gap, direction: minimize}
+      optional_axes:
+        - {name: sharpness_top_eigen, direction: minimize}
+      include_lanes: [incubator, performance]
+      require_metrics: [mean_test_accuracy, wall_time_seconds_total]
+      require_falsey_metrics: [is_smoke_eval, partial, scout_only, validation_only, validation_only_result, late_after_generation_boundary, suspect_protocol, suspect_leakage]
+      parent_eligible: true
+      allow_non_promotable: true
+      allow_missing_tier: false
+      allow_risk_violating: true
+    - name: task_candidate
+      description: "Promising lower-tier, repair, preliminary, partial, or late-after-boundary SAM evidence that should survive for validation."
+      k: 6
+      cumulative_cap: 24
+      axes:
+        - {name: mean_test_accuracy, direction: maximize}
+      optional_axes:
+        - {name: wall_time_seconds_total, direction: minimize}
+        - {name: mean_train_test_gap, direction: minimize}
+      include_lanes: [task_candidate, candidate]
+      require_metrics: [mean_test_accuracy]
+      parent_eligible: false
+      allow_lower_tier: true
+      allow_non_promotable: true
+    - name: diagnostic
+      description: "Ablations, controls, negative evidence, and protocol/process diagnostics."
+      k: 3
+      cumulative_cap: 12
+      axes:
+        - {name: mean_test_accuracy, direction: maximize}
+      include_lanes: [diagnostic, control, process, reference, negative_control]
+      parent_eligible: false
+      allow_lower_tier: true
+      allow_non_promotable: true
+      allow_missing_tier: true
+
+  # Diversity dimensions (Praxist v2026-04-30+).
+  # 6 axes of within-scope innovation. Peers articulate their variant on
+  # each axis (via the `design_dimensions` field on every published
+  # `result`/`hypothesis` finding) and aim for "clean" differentiation
+  # from frontier anchors. SCOPE-DEFINING axes
+  # (must-be-PyTorch-Optimizer-subclass, must-not-modify-train-loop)
+  # are intentionally NOT in this list — they're enforced by task
+  # description, not by diversity check. The 6 below are all axes
+  # where SAM-family variants legitimately diverge.
+  # PI/Chair plans these axes; findings report actual values in design_dimensions.
+  diversity_dimensions:
+    - name: computational_mechanism
+      description: "The specific perturbation / step computation."
+      examples: "two-step adversarial perturbation (vanilla) / lookahead k-step / single-pass approximation / momentum-based perturbation / curvature-aware step"
+    - name: adaptation_strategy
+      description: "What is dynamic vs fixed in the variant."
+      examples: "fixed rho throughout / cosine rho schedule / per-layer rho / gradient-norm-adaptive rho / training-progress-adaptive rho"
+    - name: information_source
+      description: "What gradient/parameter information does the variant consume?"
+      examples: "gradient direction only / gradient + parameter magnitude (ASAM) / gradient + Hessian eigenvalue / gradient + curvature proxy / gradient + history (momentum)"
+    - name: compute_efficiency_profile
+      description: "Compute cost relative to SGD baseline."
+      examples: "2x SGD (full SAM) / 1.2x (periodic) / 1.5x (chunked) / 1.0x (single-pass approx) / 1.3x (lookahead-k)"
+    - name: inductive_prior
+      description: "What does this variant assume about the loss landscape or parameters?"
+      examples: "parameter magnitude correlates with sharpness (ASAM) / sharpness varies layer-wise / gradient noise indicates flatness / second-order info accelerates convergence / different parameter regions need different rho"
+    - name: decomposition_topology
+      description: "How is the SAM perturbation decomposed across the network?"
+      examples: "single global rho / layer-wise rho / parameter-group rho / per-tensor rho / hierarchical (groups of layers)"
+
+compute_budget:
+  per_experiment_gpu_hours: 2
+  max_parallel_runs_per_peer: 2
+  resource_scheduler:
+    mode: central
+    initial_concurrent_experiments: 2
+    min_concurrent_experiments: 1
+    max_concurrent_experiments: 5
+    supply_signal_enabled: true
+    supply_idle_samples: 3
+    supply_lease_seconds: 600
+    mature_supply_fraction: 0.25
+    mature_supply_redundancy: 3.0
+    mature_assessment_min_completion_probability: 0.25
+    exploration_reserve: 1
+    infrastructure_retries: 1
+    default_profile: gpu_benchmark
+    profiles:
+      gpu_benchmark:
+        accelerator: gpu
+        gpu_count: 1
+        # No checked-in process-lifetime calibration trace is shipped. Omitted
+        # demand keeps this template exclusive until task initialization measures it.
+        pressure_domains: [cpu, memory, io]
+      cpu_probe:
+        accelerator: cpu
+        pressure_domains: [cpu, memory, io]
+
+toolchain:
+  framework: pytorch
+  entrypoint_template: assets/harness/baseline/train.py
+  eval_entrypoint: evaluations/pareto_tiered/run.py
+  benchmark_entrypoint: assets/harness/benchmark/run_benchmark.py
+
+task_entrypoints:
+  evaluation:
+    command: evaluations/pareto_tiered/run.py
+    output_policy: "compact summary on stdout; raw benchmark JSON and logs under runtime_outputs.root"
+    purpose: "The only public task evaluation entrypoint. It runs T1/T2/T3 gates and preserves raw evidence without forcing peers to parse large benchmark logs."
+
+task_assets:
+  manifest: assets/task_assets_manifest.json
+  harness:
+    baseline_train: assets/harness/baseline/train.py
+    benchmark_runner: assets/harness/benchmark/run_benchmark.py
+    sharpness_probe: assets/harness/benchmark/sharpness_probes.py
+  baselines:
+    curated_results: assets/baselines/results.jsonl
+    summary: assets/baselines/curated_baseline_summary.md
+  literature:
+    survey: assets/literature/recent_sam_top_venue_review_2024_2025.md
+  dataset_metadata:
+    resolver: assets/dataset_metadata/resolve_dataset.py
+    raw_dataset_policy: external
+    env_priority: [PRAXIST_SAM_DATA_DIR, SAM_DATA_DIR, PRAXIST_DATA_DIR]
+    dataset_root_env_priority: [PRAXIST_DATASETS_DIR, PRAXIST_DATA_ROOT]
+    default_relative_data_root: data/sam_optimizer
+    legacy_task_data_fallback: false
+    tiny_imagenet:
+      metadata: assets/dataset_metadata/tiny_imagenet/metadata.json
+      wnids: assets/dataset_metadata/tiny_imagenet/wnids.txt
+      class_names: assets/dataset_metadata/tiny_imagenet/class_names.tsv
+  regression_fixtures:
+    baselines:
+      - assets/regression_fixtures/baselines/sgd_T3_multi_benchmark_summary.json
+      - assets/regression_fixtures/baselines/adam_T3_multi_benchmark_summary.json
+      - assets/regression_fixtures/baselines/sam_T3_multi_benchmark_summary.json
+      - assets/regression_fixtures/baselines/asam_T3_multi_benchmark_summary.json
+
+runtime_outputs:
+  root: experiments
+  gitignored: true
+  policy: "All complete runs, logs, results, findings, variants, and ad-hoc evaluation outputs stay under this local directory. The packaged task assets are read-only inputs and must not be used as run-output sinks."
+
+# Optional per-machine execution environment for task-owned subprocesses.
+# Uncomment on servers where the task requires its own venv.
+runtime_environment:
+  data_env_aliases: [PRAXIST_SAM_DATA_DIR, SAM_DATA_DIR]
+#   cwd: task_project
+#   venv: .venv
+#   # python: .venv/bin/python
+#   require_paths: true
+
+# Tiered evaluation (Praxist task contract v2026-04-30+).
+# Peers MUST start at T1 and only escalate to the next tier if a clear
+# go-signal is met. This prevents wasting full compute on degenerate
+# variants and keeps GPU cycles available to other peers.
+#
+# T1 → T2 promotion rule: T1 best_test_acc on cifar100 ≥ 0.85 × vanilla_sam
+#                          AND no NaN / divergence.
+# T2 → T3 promotion rule: T2 mean test_accuracy ≥ vanilla_sam mean − 1pp on
+#                          BOTH cifar10 and cifar100.
+#
+# These are protocol defaults mirrored by the canonical evaluator in
+# evaluations/pareto_tiered/run.py.
+tiered_eval:
+  T1:
+    seeds: [42, 43, 44]
+    datasets: [cifar100]
+    epochs: 10
+    batch_size: 256
+    expected_minutes: 3
+    purpose: "Filter degenerates (NaN, divergence, far-below-baseline)."
+  T2:
+    seeds: [42, 43, 44]
+    datasets: [cifar10, cifar100]
+    epochs: 20
+    batch_size: 256
+    expected_minutes: 10
+    purpose: "Gate survivors before T3; reject weak variants. Not a near-full ranking protocol."
+  T3:
+    seeds: [42, 43, 44, 45, 46]
+    datasets: [cifar10, cifar100, tiny-imagenet]
+    epochs: 20
+    batch_size: 256
+    expected_minutes: 41
+    purpose: "Full evaluation across 3 datasets / 5 seeds."
+
+# Baselines under the v2026-04-30 protocol (bs=256, 20 ep T3, 5 seeds).
+# expected_acc is on the primary metric (cifar100 T3) unless noted.
+# vanilla_sam refreshed 2026-04-30; sgd/adam/asam still need re-run on the
+# new protocol — old 200-epoch numbers are NOT included to avoid mistaken
+# direct comparisons.
+baselines:
+  - name: vanilla_sam
+    expected_acc: 0.7155     # cifar100 T3, 20ep, bs=256, 5 seeds, bf16
+    notes: "Refreshed 2026-04-30 under new protocol."
+
+generation_policy:
+  # v2026-05-04: 8 fixed gens, no plateau early-stop. Generations are
+  # event-driven via `synthesis_trigger` below; PI agent runs between
+  # every pair (so 7 PI synthesis events). The old 3-cycle annealing
+  # (explore/mixed/exploit) is replaced by per-peer role contracts that
+  # the PI agent assigns dynamically based on the prior gen's findings.
+  max_generations: 8
+  cohort_size: 5
+  # `per_generation_hours` is now a SAFETY upper bound for individual
+  # peer runtime, not the gen-end timer. Set to 5h so it gives the
+  # synthesis_trigger.max_interval_minutes (240 = 4h) plus 1h drain margin.
+  per_generation_hours: 5
+  promote_top_k: 2
+  promote_criterion: primary_metric
+
+dig_lite:
+  enabled: true
+  generation_scope: initial_only
+  phase: pre_code_only
+  experiments_allowed: false
+  shell_allowed: false
+  code_writes_allowed: false
+  result_writes_allowed: false
+  candidate_count: 8
+  min_mechanism_families: 4
+  min_intervention_surfaces: 3
+  max_refinement_rounds: 1
+  max_attempts: 10
+  max_total_runtime_minutes: 40
+  fallback_to_direct_on_failure: true
+  planner_allowed_tools:
+    - Read
+    - Grep
+    - Glob
+  planner_max_runtime_minutes: 10
+  strict: true
+  inject_contract_into_prompt: true
+  allowed_file_rules:
+    - "Variant-local optimizer implementation files and compact analysis scripts under the run-owned variant directory."
+    - "DIG artifacts under the peer-local dig/ directory before implementation unlock."
+    - "contract_amendment.yaml under the same dig/ directory when implementation reality requires a documented deviation."
+  disallowed_file_rules:
+    - "assets/harness/baseline/"
+    - "assets/harness/benchmark/"
+    - "assets/baselines/"
+    - "assets/dataset_metadata/"
+    - "evaluations/"
+    - "task.yaml"
+    - "README.md"
+    - "description.md"
+    - "prompt_task.jinja2"
+    - "roles/"
+    - "findings/"
+    - "frontier"
+    - "gems"
+  diversity:
+    cell_fields:
+      - mechanism_family
+      - intervention_surface
+      - intent
+    selection: best_within_lane
+    reject_near_duplicate: true
+    duplicate_threshold: 0.82
+    allow_adjacent_lane_fallback: true
+  innovation:
+    enabled: true
+    enforce_forward_slots: true
+    max_diagnostic_fraction: 0.20
+    max_diagnostic_peers: 1
+    forward_intents:
+      - exploit
+      - explore
+      - bridge
+      - repair
+      - anti_mainline
+    diagnostic_intents:
+      - falsify
+      - diagnose
+      - ablate
+      - control
+      - audit
+  contract:
+    require_selected_contract: true
+    require_ablation_hooks: true
+    min_rejected_alternatives: 3
+    require_forbidden_changes: true
+    require_expected_metric_signature: true
+    require_fail_fast_checks: true
+  write_gate:
+    enabled: true
+    allow_writes_only_under_dig_dir_before_unlock: true
+    block_shell_before_unlock: true
+    block_variant_dir_before_unlock: true
+    block_results_dir_before_unlock: true
+
+quality_diversity:
+  enabled: true
+  initial_generation_enabled: true
+  later_generations_enabled: true
+  min_distinct_mechanism_families: 3
+  min_distinct_intervention_surfaces: 3
+  max_same_diversity_cell_peers: 1
+  max_same_mechanism_family_peers: 2
+  max_same_mechanism_family_fraction: 0.40
+  max_same_intervention_surface_peers: 3
+  max_same_intervention_surface_fraction: 0.60
+  max_same_intent_fraction: 0.60
+  target_keyword_groups:
+    - name: compute_efficient_sam
+      min_peers: 1
+      fields: [mechanism_family, intervention_surface, hypothesis, expected_gain_path, changes]
+      keywords: [single-pass, periodic, subspace, projection, overhead, efficient]
+    - name: adaptive_perturbation
+      min_peers: 1
+      fields: [mechanism_family, intervention_surface, hypothesis, expected_gain_path, changes]
+      keywords: [adaptive, rho, layer-wise, gradient-norm, curvature, phase]
+    - name: generalization_or_flatness
+      min_peers: 1
+      fields: [mechanism_family, intervention_surface, hypothesis, expected_gain_path, changes]
+      keywords: [flatness, sharpness, Hessian, train-test, generalization]
+
+gems:
+  enabled: false
+  selection_policy: mature_evidence_top_k
+  min_mature_eval_units: 15
+  evidence_stage_min_units:
+    T1: 3
+    T2: 6
+    T3: 15
+  reset_interval_generations: 6
+  max_resets: 3
+  max_gems_per_reset: 4
+  max_gems_total: 4
+  max_gems_per_family: 2
+  min_frontier_entries: 1
+  archive_ordinary_findings: true
+  signature_top_k: 20
+  signature_entries_per_lane: 12
+  prompt_max_gems: 4
+  gem_seeded_independent_peers: 2
+  performance_lanes:
+    - confirmed
+    - performance
+    - incubator
+  control_lanes:
+    - reference
+    - diagnostic
+    - process
+    - control
+    - negative_control
+  primary_metric_keys:
+    - metric_value
+    - lane_metric_value
+    - mean_test_accuracy
+    - test_accuracy
+    - accuracy
+  secondary_metric_keys:
+    - mean_train_test_gap
+    - sharpness_top_eigen
+    - positive_cell_fraction
+  cost_metric_keys:
+    - wall_time_seconds_total
+    - compute_overhead_ratio
+    - latency_ms
+    - memory_mb
+    - risk_score
+  include_lanes:
+    - confirmed
+    - performance
+    - incubator
+  result_artifact_default_lane: task_candidate
+  result_artifact_default_family: sam_optimizer_variant
+  bottleneck_detector_mode: generic
+
+# v2026-05-04: event-driven generation termination.
+# A generation runs until ANY of:
+#   (A) findings_in_gen >= min_findings
+#       AND minutes_since_gen_start >= min_interval_minutes
+#       AND distinct_contributing_peers >= min_contributing_peers
+#   (B) minutes_since_gen_start >= max_interval_minutes (safety cap)
+#
+# Defaults calibrated from v2026-05-01 31.5h SAM run (~8.5 findings/h):
+# 30 findings ≈ 3.5h at observed rate, ~2.3× faster than the old 8h
+# fixed cadence. Mini-synthesis cooldown of 2h prevents short bursts
+# from triggering reflexively; 4h cap prevents stuck peers from hanging
+# the run. min_contributing_peers=3 prevents single-peer skew.
+synthesis_trigger:
+  enabled: true
+  min_findings: 30
+  min_interval_minutes: 120     # 2h cooldown
+  max_interval_minutes: 240     # 4h safety cap
+  min_contributing_peers: 3
+  mature_quorum_fraction: 0.25  # mature evidence gates normal close
+  poll_interval_seconds: 30     # legacy lower bound; runtime is event-driven
+  adaptive:
+    drain_grace_minutes: 5      # agent-only cleanup after protected work drains
+
+# v2026-05-04: PI / Synthesis agent config.
+# Runs once between every pair of generations. Reads the just-completed
+# gen's findings + edges + frontier and writes
+# `<run_dir>/agendas/research_agenda_gen{N+1}.yaml` that the next gen's
+# peers consume via prompt injection.
+pi_agent:
+  enabled: true
+  max_runtime_minutes: 15
+  # When true, abort the run if PI fails to produce a valid agenda.
+  # When false (default), the next gen runs without a fresh agenda
+  # (peers fall back to leaderboard-driven free-explore).
+  strict: false
+
+# v2026-05-05: Research memory (ledgers + evidence pack builder + context
+# firewall). When enabled, the orchestrator maintains structured ledgers
+# under <run_dir>/research_memory/ledgers/ that survive across generations.
+# These ledgers feed the Multi-PI panel's evidence pack and provide
+# operators with a queryable post-mortem record (claim / hypothesis /
+# coverage / negative-evidence / dissent / frontier-delta / role-ROI).
+research_memory:
+  enabled: true                  # ← v2026-05-05 turned ON for SAM run
+  rollout_phase: 2               # 0=ledgers-only, 1=single-PI uses pack,
+                                 # 2+=multi-PI panel uses pack
+  evidence_pack_max_cards: 40
+  citation_coverage_min: 0.95
+  negative_evidence_ratio_min: 0.20
+  bridge_coverage_check_required: true
+
+# v2026-05-05: Multi-PI panel. Builder + Skeptic + Portfolio (+ External
+# Validity in high-stakes mode) write independent memos in parallel; a
+# Chair Arbiter merges them into the next-gen agenda. See the Praxist refactor
+# plan for current Multi-PI memory and agenda design notes.
+multi_pi:
+  enabled: true                  # ← v2026-05-05 turned ON
+  panel_mode_default: full       # mini | full | high_stakes
+  auto_escalate_to_high_stakes: true
+  pi_max_runtime_minutes: 12
+  chair_max_runtime_minutes: 25  # bumped to 25 (was 8 → 15 → 25); gen0→1 panel showed 7 min eaten just by first-token latency on the ~50-100K input prompt (3 R1 memos + 2 R2 cross_reviews + label_maps + chair algorithm). 25 min = ~3 min headroom for first-token + ~15 min Chair LLM thinking + tool calls + ~5 min YAML emit + buffer.
+  chair_peer_budget: 5            # auto-reconciled with cohort_size
+  shared_core_ratio_target: 0.65
+  private_kb_ratio_target: 0.35
+  fallback_to_single_pi_on_panel_failure: true
+
+# Run-wide provider-neutral reasoning policy for peers, PIs, and Chair.
+# `auto` preserves the selected provider/runtime default. Explicit
+# off/low/high/max values are mapped by the runtime adapter.
+agent:
+  premium_mode: false
+  reasoning_effort: max
+
+praxist_plugins:
+  task_ref: task:sam_optimizer
+  workflow:
+    stage: workflow_stage:research_loop
+  panel:
+    topology: panel_topology:legacy_multi_pi_two_round
+    roles:
+      - task_role:peer
+      - task_role:builder_pi
+      - task_role:skeptic_pi
+      - task_role:portfolio_pi
+      - task_role:external_validity_pi
+      - task_role:chair
+    optional_roles:
+      literature_scout:
+        role: task_role:literature_scout
+        tool_server_ref: tool_server:literature_lookup
+        enabled: false
+        note: "Policy template only. Runtime lookup access is provided by the active tool_server:literature_lookup entry below; keep this optional role disabled unless the task topology implements optional-role execution. Current-environment-only: do not download new datasets or install new dependencies from lookup results."
+  audit_rules:
+    - task_audit:scope_and_tier
+    - task_audit:pi_agenda
+  evaluations:
+    - task_evaluation:pareto_tiered
+  tools:
+    - tool_server:evaluation_tools
+    - tool_server:frontier_tools
+    - tool_server:finding_graph_query
+    - tool_server:memory_tools
+    - tool_server:prior_work_tools
+    - tool_server:run_report
+    - tool_server:literature_lookup
+  graph_maintainers:
+    - graph_maintainer:finding_graph_mvp
+  optional_workflow_stages:
+    ideation: workflow_stage:ideation_stub
+    paper_writing: workflow_stage:paper_writing_stub
+    # Disabled-by-default local artifact/provenance reviewer; audit-only.
+    reviewer: workflow_stage:reviewer_stub
+  implementation:
+    research_loop_backend: praxist.plugins.workflow_stages.research_loop.backend.generation_loop.GenerationLoop

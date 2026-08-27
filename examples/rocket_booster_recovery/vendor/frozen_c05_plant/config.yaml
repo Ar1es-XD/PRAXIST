@@ -1,0 +1,110 @@
+# gen54_pod9 DIG C01 — compose continuous contact-height law + far-outer
+# zero-tail residual mask.
+#
+# Parent lineage:
+#   - frontier parent 91a76a4c (gen53_pod4 C01_continuous_contact_height_law):
+#     continuous fuel-margin-tracked gear contact-height law, full-eval 1.0 at
+#     fuel1.75, fuel2.0 0.9953125 with a small outward-rim slide-out tail
+#     (seed 505: 10/1024 final-lateral>50 m, 6/1024 >100 m, 5/1024 never-touch).
+#   - far-outer zero-tail arm cc591bdc (C06 fused arm): far-outer zero-tail at
+#     dose 4.0/4.25/4.5.
+#
+# Mechanism (C01 compose): keep the continuous contact-height law (contact_law.py)
+# AND add a far-outer zero-tail residual mask (residual_mask.py) that zeroes the
+# PPO residual action for trajectories whose INITIAL lateral radius lies in the
+# far-outer radial bin (initial_r >= radius, Definition B = 1124 m). This removes
+# the fuel2.0 outward-rim slide-out tail introduced by the learned residual while
+# preserving nominal (inner/mid-disk) behavior. At fuel1.5 the fuel-keyed mask
+# (guard) already nulls the full residual, so nominal is byte-identical.
+#
+# Ablation hooks (env vars override these setdefaults):
+#   SWORDFISH_FAR_OUTER_MASK_ON     0/1 (mask on/off)
+#   SWORDFISH_FAR_OUTER_MASK_RADIUS radial boundary (m)
+#   SWORDFISH_FAR_OUTER_MASK_WIDTH  smoothstep ramp width (m)
+#   SWORDFISH_FAR_OUTER_MASK_MODE   soft|hard
+#   SWORDFISH_GEAR_CONTACT_LAW_MODE continuous|keyed|off
+#   SWORDFISH_FUEL_SCALE            fuel cell (0.7/1.5/2.0/intermediates)
+plant:
+  SWORDFISH_INTEGRATOR: "rk4"  # C01 rk4 shadow (pinned); rk2_full control arm overrides via env
+  SWORDFISH_FIN_STATION_X: "0.5"
+  SWORDFISH_FUEL_SCALE: "2.0"  # C01 stress cell (fuel2.0 contact-law dose h=3.0015) pinned
+  SWORDFISH_TERMINAL_DRAG_ON: "1.0"
+  SWORDFISH_TERMINAL_DRAG_GAIN: "3.0"
+  SWORDFISH_TERMINAL_DRAG_FAR_GAIN: "3.0"
+  SWORDFISH_TERMINAL_DRAG_RADIAL_GATE_ON: "1.0"
+  SWORDFISH_TERMINAL_DRAG_FAR_RADIUS: "1124.0"
+  SWORDFISH_TERMINAL_DRAG_RADIAL_WIDTH: "60.0"
+  SWORDFISH_RCS_SCHEDULE_ON: "1.0"
+  SWORDFISH_RCS_AUTHORITY_SCALE: "1.0"
+  SWORDFISH_RCS_NEAR_COM_SCALE: "1.0"
+  SWORDFISH_RCS_FAR_OUTER_SCALE: "3.0"
+  SWORDFISH_RCS_BOOST_RADIUS: "700.0"
+  SWORDFISH_RCS_SCHEDULE_WIDTH: "140.0"
+  SWORDFISH_BRIDGE_ON: "1.0"
+  SWORDFISH_GUIDANCE_MODE: "canonical"
+  SWORDFISH_GIMBAL_ON: "0.0"
+  SWORDFISH_DIVERT_ON: "1"
+  SWORDFISH_DIVERT_SIGN: "-1"
+  SWORDFISH_DIVERT_GAIN: "0.5"
+  SWORDFISH_DIVERT_PLACEBO_AXIS: "1"     # 1 = tangential (cross-range) prior
+  SWORDFISH_GEAR_ON: "1"
+  SWORDFISH_GEAR_CONTACT_HEIGHT_M: "4.5"
+  SWORDFISH_GEAR_CONTACT_LAW_MODE: "continuous"
+  SWORDFISH_GEAR_CONTACT_LAW_INTERP: "smoothstep"
+  SWORDFISH_GEAR_FOOTPRINT_RADIUS_M: "6.0"
+  SWORDFISH_GEAR_N_LEGS: "4"
+  SWORDFISH_GEAR_SPRING_K_NPM: "2e4"
+  SWORDFISH_GEAR_DAMPER_C_NSPM: "3e4"
+  SWORDFISH_GEAR_FRICTION_MU: "0.3"
+  SWORDFISH_GEAR_CONTACT_RESTORE_SCALE: "0.0"
+  SWORDFISH_GEAR_BOTTOM_OUT_GUARD: "1"
+  SWORDFISH_GEAR_BOTTOM_OUT_FORCE_FRAC: "0.95"
+  SWORDFISH_FUEL_MASK_MODE: "guard"
+  # ── gen55_pod12 C01 integrator-shadow: kd_roll=1.5 composed-stack lever ──
+  SWORDFISH_GUIDANCE_KD_ROLL: "1.5"
+
+  # ── gen54_pod9 C01 compose: far-outer zero-tail residual mask ──
+  SWORDFISH_FAR_OUTER_MASK_ON: "1"
+  SWORDFISH_FAR_OUTER_MASK_RADIUS: "1124.0"
+  SWORDFISH_FAR_OUTER_MASK_WIDTH: "60.0"
+  SWORDFISH_FAR_OUTER_MASK_MODE: "soft"
+
+# Pinned-knee RCS dose-saturation clamp (parent dose guard; unchanged). At the
+# base dose 3.0 this guard is inactive (3.0 <= 3.25 envelope upper bound).
+guard:
+  "on": 1
+  band_lo: 2.5
+  band_hi: 3.25
+  sat_threshold: 3.375
+  backoff_mode: "smooth"
+  scope: "all"
+  envelope_on: 1
+
+# Outward-rim tilt-demand-softening divert (cross-range tangential prior).
+divert:
+  on: 1.0
+  gate_on: 1.0
+  sign: -1.0
+  gain: 0.5
+  gate_radius: 1124.0
+  gate_width: 60.0
+  vr_only: 1.0
+  alt_gate_on: 1.0
+  alt_low_m: 80.0
+  alt_high_m: 400.0
+  tilt_cap_rad: 0.25
+  placebo_axis: 1.0     # tangential cross-range prior (zero-tail reference)
+
+# Fuel-keyed residual mask (DIG C04). Documented in config_c04.yaml.
+fuel_mask:
+  center: 1.5
+  halfwidth: 0.25
+  default_mode: guard
+
+# gen54_pod9 C01 compose: far-outer zero-tail residual mask (documentation +
+# ablation defaults; harness resolves via SWORDFISH_FAR_OUTER_MASK_* env vars).
+far_outer_mask:
+  on: 1.0
+  radius: 1124.0
+  width: 60.0
+  mode: soft

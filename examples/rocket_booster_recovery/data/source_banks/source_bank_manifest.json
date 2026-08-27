@@ -1,0 +1,37 @@
+{
+  "protocol": "rocket_booster_recovery_frozen_source_banks_v2",
+  "banks": {
+    "nominal_unseen": {
+      "repository_path": "data/source_banks/nominal_unseen_40960.npz",
+      "rows": 40960,
+      "state_shape": [40960, 16],
+      "state_dtype": "float32",
+      "sha256": "674d119f8f0cd36c2553f0cc9134ec23886fd00d1a34396d515d957132311a3d",
+      "role": "distribution-internal unseen validation bank; contributes 4096 rows to the current complete landing denominator"
+    },
+    "near_ood": {
+      "repository_path": "data/source_banks/near_ood_easy_velocity_40960.npz",
+      "rows": 40960,
+      "state_shape": [40960, 16],
+      "state_dtype": "float32",
+      "sha256": "d35803608dd3dedbbd4db76d9b39aebe37c2eedbdba4ad9ec0dcd94a690d7730",
+      "role": "near-OOD source bank; contributes 4096 rows to the current complete landing denominator"
+    },
+    "hard_ood": {
+      "repository_path": "data/source_banks/hard_ood_fast_outer_annulus_40960.npz",
+      "rows": 40960,
+      "state_shape": [40960, 16],
+      "state_dtype": "float32",
+      "sha256": "55d3e0054ef5d225b78f6558a4e15a3a908bedb84daabb7cc66b8e6579fd297c",
+      "role": "hard-OOD source bank; contributes 4096 rows to the current complete landing denominator"
+    }
+  },
+  "current_complete_protocol": {
+    "name": "rocket_booster_recovery_first_contact_7000kg_private_validation_v2",
+    "rows_per_bank": 4096,
+    "landing_rows": 12288,
+    "initial_mass_kg": 29200.0,
+    "single_success_metric": "landing_success_rate",
+    "validation_protocol": "task_GPU_server/assets/dataset_metadata/validation_protocol.json"
+  }
+}

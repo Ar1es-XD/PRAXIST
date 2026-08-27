@@ -1,0 +1,38 @@
+schema_version: 1
+name: sam_portfolio_pi
+kind: role
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Portfolio PI role for SAM runs; guards diversity and prevents premature lock-in.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - role.skill
+  - pi.memo
+  - pi.private_kb
+role:
+  role_id: portfolio
+  legacy_role_id: portfolio
+  display_name: SAM Portfolio PI
+  role_kind: pi
+  default_model_profile_ref: strong_reasoner
+  output_schema_ref: core:pi_memo.v1
+  tool_scope:
+    - filesystem.read
+    - memory_tools.panel_read
+  private_kb:
+    - private_kb/bridge_coverage_principles.md
+  fixed_questions:
+    - How much research budget is the current mainline absorbing?
+    - Which mechanisms were declared obsolete prematurely?
+    - Is the anti-mainline forbidden list growing too narrow?
+    - Which bridge target has already been covered and would now be a no-op?
+    - Which previously failed lineage is worth reviving in the current context?
+    - Are we keeping at least one non-mainline peer?
+code: []
+assets:
+  - skill.md
+  - private_kb/*.md

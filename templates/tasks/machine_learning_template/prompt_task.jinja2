@@ -1,0 +1,168 @@
+## Current Machine Learning Task Block
+
+Task: {{ task_spec.task_name }}
+
+This is a general machine learning task template. Replace this block with the
+concrete project objective, data contract, prediction artifact format, evaluator
+command, and research constraints before running real experiments.
+
+### Public Task Context
+
+- Description file: `description.md`
+- Structured context template: `assets/task_context/context_template.json`
+- Resource plan template: `assets/resource_plan.md`
+- Primary metric: `{{ task_spec.evaluation.primary_metric }}`
+- Direction: `{{ task_spec.evaluation.direction }}`
+- Ranking policy: use the task context's domain convention. If the domain
+  requires variance, confidence intervals, lower confidence bounds, risk,
+  regret, or Pareto tradeoffs, publish the required robust metrics and do not
+  rank solely by raw mean.
+
+### Evaluator Contract
+
+Follow the task owner's protocol-intent table before applying the template
+defaults below. A user-approved reduced, partial, or scout mode may rank or
+count as mature when the task explicitly says so; always expose its real stage,
+effort, and coverage. Never infer that a launch is invalid from words in its
+command, path, or source. Undeclared protocol drift remains a validation signal
+and must not impersonate a more mature class.
+
+Use the task-owned public evaluator entrypoint declared in `task.yaml`:
+
+```bash
+python evaluations/primary/run.py --help
+```
+
+Prefer this synchronous entrypoint. If the concrete task explicitly supports a
+background evaluator, wait only on its documented task-owned structured
+progress/result contract. A runtime-private `tasks/<task-id>.output` file is a
+transcript, not a completion sentinel: successful commands may emit no text,
+and the runtime's structured task notification and exit status own completion.
+
+Before real use, replace the placeholder evaluator with one that can score a
+prediction artifact and emit a compact machine-readable summary. The evaluator
+summary should identify:
+
+- prediction artifact path;
+- metric values and direction;
+- task-defined evidence stage, such as preliminary, aligned, complete,
+  diagnostic, or control;
+- protocol name or evaluator mode;
+- data split, seed, fold, or task-owned evaluation unit;
+- number of completed evaluation units and fixed train/eval budget when relevant;
+- exact `effort_ratio` versus the task-defined reference effort;
+- exact `coverage_ratio` versus the complete protocol coverage;
+- protocol-integrity pass/fail status;
+- expected versus completed complete-protocol budget, such as epochs, gradient
+  steps, simulator episodes, seeds, folds, or task-owned evaluation units;
+- invalid-output reason when scoring fails.
+
+The task owns maturity semantics. Read `evaluation.maturity_policy` and the
+protocol-intent table rather than inferring maturity from a built-in tier name.
+The template default treats preliminary evidence as triage and aligned evidence
+as an early-prioritization stage with matching metric semantics and near-complete
+coverage. An explicitly different user-owned protocol takes precedence. Every
+stage must report its actual effort, coverage, and protocol integrity. No fixed
+epoch, seed, fold, evaluation-unit, or tier count is universal.
+
+Evaluator summaries may be nested under `results/**/` and named `summary.json`,
+`evaluation_summary.json`, `eval_summary.json`, `tiered_eval_summary.json`, or
+`custom_*_tiered_eval_summary.json` (with `result_summary.json` accepted for
+compatibility). The materializer transfers lane, maturity, ratio, protocol,
+and diagnostic metadata into structured findings; do not infer maturity from
+filename spelling.
+Every summary must publish a stable top-level `variant_id`; if one evaluator
+emits multiple candidates, publish an explicit child-result ID for each. Reuse
+the same candidate identity across preliminary, aligned, and complete stages.
+
+### Frontier Evidence Contract
+
+- `confirmed`: artifacts satisfying the task owner's declared mature protocol
+  on the primary metric; `parent_eligible: true`.
+- `incubator`: lower-admission durable long-term variant library for
+  protocol-passed, non-suspect Pareto/new-high prediction artifacts from modes
+  the task owner authorizes for durable parent use; under this template's
+  default that is the complete mode. These artifacts are
+  worth developing further but are not yet clean confirmed parents.
+- `task_candidate`: preliminary, aligned, partial, repair, or smoke evidence
+  worth follow-up; `parent_eligible: false`.
+- `diagnostic`: controls, invalid-output reports, negative evidence, and process
+  observations; `parent_eligible: false`.
+
+The canonical evaluator must route ordinary parent-authorized performance results
+through the shared `performance` source accepted by both confirmed and
+incubator selectors. Include the raw primary metric and complete-evidence
+marker relative to the selected task protocol in `metrics`, for example:
+
+```json
+{"finding_type":"result","metrics":{"task_score":0.0,"scored_complete":true,"effort_ratio":1.0,"coverage_ratio":1.0},"extra":{"frontier_lane":"performance","promotion_lane":"performance","evidence_stage":"complete","prediction_artifact":"<path>","evaluation_summary":"<path>"}}
+```
+
+Use `task_candidate` for promising preliminary, aligned, partial, smoke,
+repair, or late-after-boundary evidence. When a candidate has a comparable
+aligned or partial metric, include the
+raw metric. When it has no meaningful numeric score yet, keep the evidence
+visible with `extra.frontier_lane="task_candidate"` and explain the follow-up
+value.
+Apply the task-owned ranking permissions to early metrics. Under the template
+default, aligned metrics are comparable early-ranking signals and preliminary
+metrics remain triage until revalidated; do not impose that default when the
+user explicitly selected another protocol.
+Use `diagnostic` for controls, invalid outputs, negative evidence, and process
+observations. A result must not claim it completed a protocol it did not run;
+an explicitly selected reduced protocol may still be complete relative to its
+own declared contract while retaining `partial`/`scout` stage and ratio metadata.
+When robustness matters, include metrics such as lower confidence bound, metric
+standard deviation, seed robustness, risk, or constraint violation rate so the
+frontier lanes can rank by the task-approved robust rule.
+
+Do not guess whether a parent-authorized result will become confirmed or
+incubator. Publish the evaluator's `performance` source label unchanged and
+include every configured Pareto-axis metric; Praxist independently selects the
+strict confirmed target and the lower-admission incubator target. Only an
+evaluator contract that intentionally emits an explicit incubator source may
+use `frontier_lane="incubator"`, and then it must also provide
+`incubator_axis` and `incubator_candidate_reason`. Never relabel the canonical
+summary in a duplicate finding.
+
+Do not hand-write Praxist frontier, Gems, prompt-layout, research-memory,
+leaderboard, PI evidence-pack, or diagnostic state. Current evidence facts are
+owned by evaluator result summaries, structured findings, frontier/incubator
+state, committed Gems state, and generation boundaries. Leaderboards and PI
+evidence packs are derived views for context and audit.
+Validation candidates are not discarded. Publish promising partial,
+preliminary, aligned, smoke, repair, failed, ablation, diagnostic, lower-tier,
+or late-after-boundary evidence through structured findings so Praxist can surface
+it compactly to later agents. Use it for follow-up validation or falsification,
+not as durable promotion truth or as a parent from a
+`parent_eligible: false` lane.
+
+### First Actions
+
+1. Read `description.md` and `assets/task_context/context_template.json`.
+2. Inspect baseline records under `assets/baselines/`.
+3. Create editable work under the Praxist run directory, not inside task source.
+4. Run the evaluator in its smallest safe mode after the placeholder is
+   replaced.
+5. Publish every useful result, failure, and diagnostic through Praxist
+   `share_finding`.
+
+### Role Quick Cards
+
+- `starter`: build a strong editable starting system from public task evidence
+  and general ML knowledge.
+- `solver`: improve prediction quality through focused implementation,
+  validation, tuning, calibration, ensembling, or postprocessing.
+- `analyst`: analyze data, frontier methods, attempts, logs, and failures first;
+  then turn the diagnosis into a focused tested improvement.
+- `peer_generalist`: use the task context and PI contract to choose the most
+  useful ML work item.
+
+### Work Rules
+
+- Keep work inside the declared task scope and task-owned data boundary.
+- Do not modify Praxist core or generic plugins to improve a task result.
+- Do not write raw datasets, large checkpoints, or secrets into tracked task
+  files.
+- Do not hand-write Praxist frontier, Gems, DIG, graph, or memory state.
+- Preserve evidence paths and failure modes so later peers can reuse them.

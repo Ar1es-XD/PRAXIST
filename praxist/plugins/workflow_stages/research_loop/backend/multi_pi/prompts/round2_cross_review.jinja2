@@ -1,0 +1,100 @@
+You are PI **{{ role_name | upper }}** in a Multi-PI panel. This is **Round 2: cross-review**.
+
+In Round 1, you wrote your independent memo. The other PIs ({{ peer_count }}) wrote theirs in parallel without seeing yours. Now you read THEIR memos (anonymized as PI #A / #B / ...) and answer 6 fixed questions.
+
+**Hard rules** (the validator enforces):
+- Output structured YAML only — no free-form debate, no rewriting your Round 1 memo.
+- You may revise your own claims' confidence + boundary; you may NOT introduce a brand-new claim.
+- You may NOT vote on scientific truth — your job is to surface the strongest agreement, the strongest objection, and the missing experiments.
+
+## Your Round 1 memo (verbatim, for reference)
+
+```yaml
+{{ own_memo | tojson(indent=2) }}
+```
+
+## Anonymized peer memos
+
+{% if not anon_peers %}
+**No peers available.** You are the only PI with a successful Round 1
+memo this synthesis. There is no cross-review to perform. Return the
+following YAML and stop:
+
+```yaml
+role: {{ role_name }}
+round: 2
+_no_peers: true
+note: "Only PI with successful Round 1 memo; cross-review skipped."
+```
+
+{% else %}
+{% for label, memo in anon_peers.items() %}
+### {{ label }}
+
+{% if memo.get("_pi_unavailable") %}
+⚠️ **This peer was unavailable in Round 1** (error: {{ memo.get("error_summary", "unknown") }}). Their memo is a stub — empty `top_claims`, `objections_or_warnings`, etc. Do NOT cite claim_ids from this peer; treat them as absent. Reference them in answers only if EVERY other peer is also unavailable, otherwise prefer peers with real content.
+{% endif %}
+```yaml
+{{ memo | tojson(indent=2) }}
+```
+
+{% endfor %}
+
+## Required questions (answer in YAML)
+
+1. **strongest_agreement** — Which peer's claim do you most strongly agree with? Why?
+2. **strongest_objection** — Which peer's claim do you most strongly object to? Give a concrete kill test.
+3. **missing_experiment** — What experiment is conspicuously missing across ALL memos (yours + peers')?
+4. **private_kb_revealed_blind_spot** — Did a peer's `private_knowledge_used` reveal a blind spot in your own reasoning?
+5. **claim_that_should_be_downgraded** — Which claim (yours or a peer's) should have lower confidence or tighter boundary?
+6. **singleton_high_upside_idea_to_preserve** — Which minority idea must be protected from majority pressure (i.e., would lose to consensus but has high asymmetric upside)?
+
+## Output schema (YAML, NO markdown fences)
+
+```yaml
+role: {{ role_name }}
+round: 2
+strongest_agreement:
+  peer_label: "PI #?"
+  claim_id: "<id from peer's top_claims>"
+  why: "<one sentence>"
+
+strongest_objection:
+  peer_label: "PI #?"
+  claim_id: "<id>"
+  objection: "<one sentence>"
+  proposed_kill_test: "<one paragraph: minimal experiment that would falsify>"
+
+missing_experiment:
+  description: "<one sentence>"
+  why_critical: "<one sentence>"
+
+private_kb_revealed_blind_spot:
+  triggered: <true|false>
+  peer_label: "PI #?"   # null if triggered=false
+  blind_spot: "<one sentence>"
+
+claim_that_should_be_downgraded:
+  claim_id: "<id from your or peers' memo>"
+  current_language: "<excerpt>"
+  recommended_language: "<bounded version>"
+  reason: "<one sentence>"
+
+singleton_high_upside_idea_to_preserve:
+  source: "self | peer"
+  peer_label: "PI #?"   # null if source=self
+  idea_summary: "<one sentence>"
+  protected_budget_recommendation: "<e.g. 1 anti_mainline peer>"
+
+# OPTIONAL: revisions to your OWN Round 1 claims (NOT introducing new ones).
+own_revisions:
+  - claim_id: "<id from your Round 1 top_claims>"
+    confidence_old: <float>
+    confidence_new: <float>
+    boundary_old: "<original>"
+    boundary_new: "<bounded>"
+    triggered_by: "PI #? objection on missing baseline" | "self-correction"
+```
+{% endif %}
+
+Begin. You have {{ "9 (high-stakes mode)" if role_name == "external_validity" else "6" }} minutes.

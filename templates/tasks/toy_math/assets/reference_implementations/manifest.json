@@ -1,0 +1,10 @@
+{
+  "schema_version": "praxist.reference_implementations.v1",
+  "source": "toy-math placeholder",
+  "variant_count": 0,
+  "entrypoint_contract": {
+    "policy": "replace with proof scripts or counterexample fixtures if this becomes a real task"
+  },
+  "variant_dirs": [],
+  "raw_results_policy": "do not commit live run outputs"
+}

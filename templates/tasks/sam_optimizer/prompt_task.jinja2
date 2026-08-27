@@ -1,0 +1,595 @@
+## Task: SAM Optimizer Variants Research
+
+{{ task_spec.get_description() }}
+
+{# R4-C3 fix (v2026-05-04): if a PI-issued role contract is present in
+   the generation context, surface it BEFORE the task's hard constraints
+   so the agent's first-attention block is the role contract — and add
+   an explicit override note. The task's "Promotion gates: do NOT skip
+   tiers" line below would otherwise instruct theorist/falsifier peers
+   to run T3, contradicting their role contract. #}
+{% if research_agenda is mapping and research_agenda %}
+{% set my_contract = (research_agenda.peer_contracts or {}).get(peer_id) %}
+{% if my_contract %}
+
+## ⚠️ Your role contract from the PI agenda overrides the protocol below
+
+For **gen ≥ 1**, the **PI agenda's role contract** (rendered separately above) is your **authoritative directive**. The agenda is produced by either a single PI agent (v2026-05-04) or a multi-PI panel (v2026-05-05+: Builder + Skeptic + Portfolio + Chair); from your perspective the schema is the same — your `peer_contracts[<peer_id>]` entry is the contract.
+
+The "T1→T2→T3 protocol" and "share_finding(finding_type='result')" walkthroughs below describe the DEFAULT behavior for `role: exploit` peers. If your role is **`falsifier`**, **`anti_mainline`**, **`bridge`**, or **`theorist`**, follow the role-specific publishing rules from the role contract — do NOT default to producing T3 result findings just because the protocol below describes how.
+
+The PI agenda and evidence packs are planning/audit context. Current measured
+truth comes from evaluator result summaries, structured findings,
+frontier/incubator state, committed Gems state, and generation boundaries. Do
+not hand-write Praxist frontier, Gems, prompt-layout, research-memory, leaderboard,
+PI evidence-pack, or diagnostic state.
+
+In particular:
+- `theorist`: do NOT run T3. Publish `finding_type=insight` only.
+- `falsifier`: do NOT chase the leaderboard with new variants; publish `finding_type=insight` or `finding_type=challenge` summarizing whether the target hypothesis survives controls.
+- `anti_mainline`: T3 protocol applies, but your variants MUST NOT use the mechanisms in `anti_mainline_contract.forbidden_mechanisms`.
+- `bridge`: T3 protocol applies; you must produce at least one bridge variant ablating both parents.
+- `exploit`: T1→T2→T3 normal flow (this is the protocol below).
+
+{% endif %}
+{% endif %}
+
+## 🔴 Research Scope (HARD CONSTRAINTS — do not violate)
+
+These are **task definition**, not peer-side preferences. Any variant
+that violates them is OFF-SCOPE:
+
+1. **Drop-in PyTorch Optimizer subclass.** Your variant MUST subclass
+   `torch.optim.Optimizer` and expose the standard interface
+   (`step()`, `zero_grad()`, `param_groups`, `state_dict()`,
+   `load_state_dict()`). The optimizer must work in any standard
+   PyTorch training loop without changes — that is the entire point
+   of this research (portability across frameworks).
+
+2. **Do NOT modify the training loop.** No custom forward-backward
+   hooks, no per-batch model surgery, no architecture changes, no
+   custom learning-rate schedulers, no curriculum / data-mix tricks.
+   The training harness in `baseline/train.py` is the canonical
+   reference; peers must NOT replace or extensively edit it.
+
+3. **Fixed evaluation protocol.** Use the task-local tiered evaluator:
+   ResNet-18, cosine LR schedule, batch size 256, seed pool
+   {42,43,44,45,46}, and the T1/T2/T3 cells declared in
+   `task_spec.tiered_eval`. T3 is the full mature benchmark:
+   CIFAR-10, CIFAR-100, Tiny-ImageNet, 20 epochs, 5 seeds. Do not
+   change these — comparability across variants depends on the stable
+   task-local evaluator.
+
+If you find yourself wanting to change anything outside the optimizer
+class itself, STOP — your variant is escaping scope. Reformulate your
+idea so the change can be expressed as a different `optimizer.step()`
+implementation.
+
+## Innovation Space (within scope, all axes are FAIR GAME)
+
+Your variant can — and should — be substantively different from
+existing baselines along the **6 axes** declared in
+`task_spec.evaluation.diversity_dimensions`:
+
+  1. `computational_mechanism` — the perturbation/step formula
+  2. `adaptation_strategy` — what's dynamic vs fixed
+  3. `information_source` — what gradient/parameter info you consume
+  4. `compute_efficiency_profile` — compute cost vs SGD
+  5. `inductive_prior` — what you assume about loss landscape / params
+  6. `decomposition_topology` — how perturbation is decomposed across the network
+
+In **gen 0** (free-explore), Praxist injects a
+diversity-guidance block asking you to articulate your variant on
+these 6 axes and compare against the frontier anchors. In **gen ≥ 1**
+the PI agenda's role contract (rendered above the task prompt) takes
+over — your role tells you what to push on; design_dimensions still
+gets recorded on every published `result`/`hypothesis`. Aim for
+**clean** classification (differ from each anchor on ≥ ⌈M/2⌉
+dimensions). The system does NOT block your submission based on this
+— promotion is by primary metric — but the diversity signal is
+observational and visible to all subsequent generations and to the
+PI synthesizer (single agent in v2026-05-04, multi-PI panel in
+v2026-05-05+).
+
+### 🚧 Under-explored axes — coordinate so the cohort hits at least one
+
+The system already drives breadth by two mechanisms:
+- **Gen 0**: the first N=3 of 5 peers get round-robin
+  `must_explore_axes` assignments injected by the orchestrator (rho
+  schedule / lookahead-k / subspace; see `task_spec.evaluation.must_explore_axes`).
+- **Gen ≥ 1**: the PI agent's role contract (rendered above the task
+  prompt) is your authoritative directive; it may already point you
+  at an under-explored axis.
+
+The guidance below is for **(a) free-slot peers in gen 0** (unassigned
+positions 4-5) and **(b) gen ≥ 1 peers whose contract leaves room for
+free choice**. Cohort post-mortem (2026-04-30, 78 variants over 11h)
+showed exploration concentrated on the **perturbation-signal** axis —
+7 different signals tried (curvature/coherence/variance/cosine-curv/
+ratio/power-law/ASAM) and crossed combinatorially. Two
+**task-spec-listed, in-scope** axes were left empty:
+
+  1. **`adaptation_strategy: cosine rho schedule / training-progress-adaptive
+     rho`** — rho varying along epoch progress (e.g. cosine 0.10→0.02,
+     warmup-then-decay, curriculum-driven). All previous 78 variants used
+     a static rho. This is rho-as-a-function-of-step, NOT a learning-rate
+     schedule (which is out-of-scope; LR is owned by the trainer, not
+     the optimizer). Implement by storing a step counter in the optimizer
+     state and computing rho inside `step()`.
+  2. **`computational_mechanism: lookahead k-step / multi-step adversarial
+     ascent`** — instead of one ascent step → descent step, take k>1
+     ascent steps before descending. SAM-K, SAGM, and several 2024-2025
+     papers explore k=3-5 with diminishing returns past k=5. Compute
+     overhead is roughly (1+k)× SGD; budget allows up to k=3 within the
+     `<2× SGD strict` constraint if you reuse buffers cleverly.
+
+Optional but encouraged third direction:
+
+  3. **Subspace-SAM / random-projection SAM** — perturb only on a random
+     low-dimensional subspace per step (Gaussian projection or Bernoulli
+     mask applied to the gradient). Still expressible inside
+     `Optimizer.step()`; lowers the perturbation's effective dimension.
+
+**Cohort-level coordination** (for free-slot peers only — assigned
+peers follow their `must_explore_axes` slot or PI role contract):
+
+1. **Before designing your variant**, call
+   `mcp__finding-graph-query__get_unlinked_recent_findings` (which
+   surfaces fresh findings even before they have edges in the graph).
+   This is your *only* path to see hypotheses other cohort-mates
+   posted moments ago — the leaderboard excludes hypotheses by design,
+   and the session-start graph context only highlights edge-rich
+   findings.
+2. **If you intend to claim an under-explored axis**, post your
+   `share_finding(finding_type="hypothesis", ...)` BEFORE you start
+   T1, so a sibling peer polling at startup sees your claim.
+3. **If you see another peer has already claimed an axis**, take the
+   other one or pick something orthogonal — the goal is breadth, not
+   duplication.
+
+**Evaluation protocol:**
+- Primary metric: `{{ task_spec.evaluation.primary_metric }}` ({{ task_spec.evaluation.direction }})
+- Auxiliary metrics: {{ task_spec.evaluation.aux_metrics | join(', ') }}
+- Seeds required: {{ task_spec.evaluation.seeds }}
+- Aggregation: {{ task_spec.evaluation.aggregation }}
+
+**Pareto-frontier leaderboard** (Praxist v2026-05-01+): when you
+call `get_leaderboard`, you get a **multi-metric Pareto front** across
+primary metric + anchor metrics ({% for am in task_spec.evaluation.anchor_metrics %}`{{ am[0] }}` ({{ am[1] }}){% if not loop.last %}, {% endif %}{% endfor %}).
+
+**The response always carries a `mode` field — branch on it:**
+
+- `mode == "pareto"` (normal case): two lists are present:
+  - `pareto_front`: variants that NO other variant beats on every axis.
+    Each entry's `best_in` field is a list of axis names where this
+    variant is tied for #1 on the front. A 2.0×-overhead variant with
+    #1 cifar100 accuracy and a 1.1×-overhead variant with worse accuracy
+    can both be on the front — neither dominates the other.
+  - `dominated_top`: next-best variants that are strictly worse than at
+    least one front variant on every axis (for context only).
+  - `best_in`: a top-level dict mapping each axis name → **list** of
+    leader variant names (multiple when tied).
+- `mode == "single_metric"` (no anchor metrics configured) OR
+  `mode == "filesystem_fallback"` (SQLite hiccup) OR
+  `mode == "server_legacy"` (running against an old HTTP server): the
+  response has an `entries` list ranked by primary metric only. No
+  `pareto_front` / `dominated_top` / `best_in`. Use this as a degraded
+  fallback.
+
+The "best variant" is plural by design — best on accuracy, best on
+efficiency, best on generalization gap each get their own slot. When
+designing a new variant, **read the front and pick a frontier gap** to
+target (e.g. "no one is on the front at <1.5× overhead AND
+>0.71 cifar100" → that's a gap worth a variant).
+
+Hypothesis-type findings, T1/T2 partial results, and findings with
+`promotion_eligible: false` are **excluded from the Pareto leaderboard
+by design** — only completed `result` or `insight` findings with
+`tier="T3"` and `promotion_eligible=true` are eligible.
+This does not mean strong lower-tier evidence should disappear. Complete,
+non-suspect T1/T2 results that are useful on accuracy, overhead, gap, or
+sharpness remain visible in the non-parentable `task_candidate` lane for
+repair and validation. Only complete non-suspect T3 evidence that passes the
+task's effort/coverage ratio gate may enter the parentable lower-admission
+`incubator`. Incubator is not a high-standard confirmed lane, but it is still a
+durable parent lane and therefore must not admit T1/T2 evidence.
+
+**Baselines (pre-computed, in `$PRAXIST_TASK_PROJECT_PATH/assets/baselines/`):**
+{% for b in task_spec.baselines %}
+- `{{ b.name }}`: expected_acc = {{ b.expected_acc }}{% if b.notes %}  ({{ b.notes }}){% endif %}
+{% endfor %}
+
+**Compute budget per experiment**: {{ task_spec.compute_budget.per_experiment_gpu_hours }} GPU-hrs
+
+## 🟢 Tiered evaluation — use the task-local evaluator
+
+Compute is shared across {{ task_spec.generation_policy.cohort_size }} peers per generation. Do not hand-roll tier
+logic in the shell. After you implement a variant, run the task-local
+evaluator once and let it execute T1 -> T2 -> T3 gates. This is the only
+public evaluation entrypoint in the task:
+
+```bash
+"${PRAXIST_TASK_PYTHON:-python}" "$PRAXIST_TASK_PROJECT_PATH/evaluations/pareto_tiered/run.py" \
+    --variant-path <your_variant.py> \
+    --output-dir {{ results_dir }}/<experiment_name> \
+    --data-dir "$PRAXIST_DATA_DIR" \
+    --max-tier "${PRAXIST_SAM_MAX_TIER:-T3}"
+```
+
+The evaluator starts at T1, escalates only when the gate passes, preserves raw
+benchmark JSON/logs under `{{ results_dir }}/<experiment_name>`, writes
+`custom_<variant>_tiered_eval_summary.json`, and prints a compact summary. Its
+internal benchmark runner is not a peer-facing command.
+
+The evaluator's tier definitions are the source of truth:
+
+{% for tname, tcfg in task_spec.tiered_eval.items() %}
+- **{{ tname }}** (~{{ tcfg.expected_minutes }} min): {{ tcfg.seeds | length }} seeds × {{ tcfg.datasets | join(' + ') }} × {{ tcfg.epochs }} ep — *{{ tcfg.purpose }}*
+{% endfor %}
+
+**Promotion gates** (the evaluator applies these; do NOT skip tiers):
+1. **T1 → T2**: T1 best `test_accuracy` on `cifar100` ≥ 0.85 × vanilla_sam **AND** no NaN/divergence in any seed.
+2. **T2 → T3**: T2 mean `test_accuracy` ≥ vanilla_sam mean − 1pp on **both** `cifar10` and `cifar100`.
+
+**Slow-starter caveat**: T1 is only 10 epochs with cosine LR. Variants
+that genuinely need a long schedule (heavy warmup, late rho decay,
+lookahead-K with large K) may legitimately under-perform at T1 even
+when their T3 result would be strong. If your *theoretical* design
+clearly belongs in this category, document the reasoning in the
+`share_finding.notes` and request escalation; otherwise let the gate
+filter you and emit a (negative) finding.
+
+If the evaluator stops at T1/T2: emit a `share_finding` with the stopped tier
+and failing metric from the summary, then STOP. That's a valid negative
+finding.
+
+T1/T2 evidence is useful for triage, repair, and deciding whether to spend T3
+compute, but it is not a near-full aligned-scout ranking protocol. Do not rank
+variants or claim frontier/Gems strength from T1/T2 metrics alone.
+If a complete non-suspect T1/T2 result is clearly useful on a distinct axis,
+publish enough metadata for validation retention in
+`frontier_lane="task_candidate"`, including raw axis metrics, `tier`, the
+follow-up reason, and `promotion_eligible=false`. Do not mark it parentable or
+publish it to `incubator` before T3 revalidation.
+
+**Output filenames are tier-aware.** Use one output directory per variant:
+`{{ results_dir }}/<experiment_name>`.
+
+## GPU coordination - do not launch train.py directly
+
+The tiered evaluator calls its internal benchmark runner, which integrates
+through the central experiment scheduler. **Do not** invoke `baseline/train.py` or the
+internal benchmark runner directly — those paths bypass the canonical
+evaluation protocol.
+
+Praxist sets `PRAXIST_TASK_PROJECT_PATH`, `PRAXIST_WORKSPACE_ROOT`, `PYTHONPATH`,
+optional task runtime vars such as `PRAXIST_TASK_PYTHON` / `PRAXIST_TASK_VENV`,
+the central scheduler endpoint, and `PRAXIST_DATA_DIR` before the peer starts. Keep those
+values intact. If you pass `--data-dir`, pass the absolute `$PRAXIST_DATA_DIR`.
+Use `${PRAXIST_TASK_PYTHON:-python}` for task-owned scripts so configured task
+venvs are honored. Do not pass relative paths such as `data/sam_optimizer`.
+
+The `gpu_benchmark` profile declares measured memory/utilization demand. The
+central scheduler decides whether another experiment fits the same GPU; peers
+and evaluator children must not change that placement.
+`PRAXIST_ASSIGNED_GPU_UUIDS` is the authoritative physical GPU UUID mask. Preserve
+its exact ordered value in `CUDA_VISIBLE_DEVICES` and
+`NVIDIA_VISIBLE_DEVICES` through every evaluator, trainer, and worker child.
+Framework-local `cuda:0` is only the first device inside that mask and must
+never be written back as the physical assignment.
+
+- Sharpness probe (T2/T3 only, needs a saved checkpoint): this is
+  evaluator-owned evidence collection. Do not call it as a substitute for the
+  tiered evaluator.
+
+## ⏰ Waiting policy
+
+The tiered evaluator is the preferred path. Prefer synchronous evaluator calls.
+Use `mcp__evaluation-tools__wait_for_file` only for an explicitly supported
+manual background-evaluation contract over a task-owned progress/result file
+that still publishes standard summaries. Never wait for a runtime-private
+`tasks/<task-id>.output` transcript to become non-empty: a successful command
+may emit no text, and the runtime's structured task notification and exit status
+own completion.
+Such a launch must use `PYTHONPATH="$PRAXIST_WORKSPACE_ROOT${PYTHONPATH:+:$PYTHONPATH}" "$PRAXIST_RUNNER_PYTHON" -m praxist.plugins.workflow_stages.research_loop.backend.protected_pids launch --peer "$PRAXIST_PEER_ID" --tag <stable_semantic_id> --profile gpu_benchmark --work-class <scout|ordinary|mature> -- <command>` so Praxist owns admission, GPU visibility, retries, and process-group drain before the Frontier snapshot; do not use raw `&`, `nohup`, manual GPU selection, or Bash polling loops.
+After correcting a terminal failed/rejected request, keep the scientific tag and
+add `--retry-terminal`; never use it for active or completed work.
+
+If `{{ run_dir }}/gen_{{ gen_id }}/CLOSING_SIGNAL` exists, do not start another
+training, evaluation, script, shell launcher, or background process. Finish
+already-started work naturally, inspect its outputs, publish findings, and
+update the notebook/memory before exiting.
+
+## External Literature Lookup
+
+Read the task-scoped prior-art pack first. If the active Praxist tool set includes
+`tool_server:literature_lookup`, you may run a bounded public lookup only to
+check a specific mechanism, metric convention, or prior-art claim not already
+covered by that pack. Treat lookup output as contextual signal, not benchmark
+evidence. If a source mentions unavailable datasets, checkpoints, packages,
+licenses, APIs, or runtime environments, do not download or install them during
+the run; adapt the idea to the current SAM evaluator and local runtime.
+
+## Required reading (do this BEFORE designing your variant)
+
+To avoid re-inventing the wheel, read these surveys:
+- `$PRAXIST_TASK_PROJECT_PATH/assets/literature/recent_sam_top_venue_review_2024_2025.md`
+  (English, ~15 KB) — curated top-venue SAM survey
+
+These cover Friendly-SAM, CR-SAM, layerwise-/phase-adaptive SAM, and
+several others. If your proposed variant is structurally identical
+to one of these, the diversity check will catch it as a clone or
+narrow variation. Differentiate substantively.
+
+**Implementation guidelines:**
+- New optimizers go under `{{ variants_dir }}/<your_variant_name>/`
+- Each variant must be a standalone PyTorch `Optimizer` subclass
+  (cf. Research Scope §1 above)
+- Use the baseline `train.py` as the training harness — **only the
+  optimizer class differs** (cf. Research Scope §2 above)
+- Always compare against at least vanilla SAM and one other baseline
+- **All experiment results (JSON + figures) MUST go under
+  `{{ results_dir }}/`** — never write results to the project root
+- The training script automatically generates training curve figures
+  (loss & accuracy plots) alongside JSON results
+- After completing a set of experiments, generate comparison figures
+  (e.g., accuracy bar charts across variants) and save them under
+  `{{ results_dir }}/`
+
+## When you call `share_finding`
+
+### MANDATORY tier and maturity metadata in `metrics` (for `result` and `insight` findings)
+
+Every `share_finding(finding_type="result" or "insight", metrics=...)`
+call MUST include all of these fields, copied **verbatim** from the
+evaluator-updated `<opt>_T<N>_multi_benchmark.json` output:
+
+  - `"tier": "T1" | "T2" | "T3"` — which tier this finding came from
+  - `"promotion_eligible": true | false` — only `true` for completed T3 runs
+  - `"effort_ratio": <float>` — actual effort versus the full task reference effort
+  - `"coverage_ratio": <float>` — completed required cells versus full required cells
+
+The task-local evaluator and frontier eligibility filters look at these
+fields to decide whether a finding qualifies for primary-metric /
+anchor-metric ranking. **Result/insight findings without `tier` and
+`promotion_eligible` are treated as incomplete, non-promotable SAM evidence;
+findings without `effort_ratio` and `coverage_ratio` lose mature-evidence
+telemetry.** These ratios are always relative to the full reference protocol,
+not to a smoke-run `--max-tier` override, so T1/T2 evidence remains useful
+without being mislabeled as mature. Do not omit these fields: missing metadata
+prevents later agents from distinguishing T1/T2 triage signals from mature T3
+results.
+
+**Exception**: `finding_type="hypothesis"` findings have NO completed
+benchmark to copy from yet — they MUST omit `tier` and
+`promotion_eligible`, and the leaderboard skips them entirely. See
+Example C below.
+
+### When to call
+
+  - **T1 PASS** (gate met): do **NOT** call `share_finding` yet.
+    Continue to T2.
+  - **T2 PASS** (gate met): do **NOT** call `share_finding` yet.
+    Continue to T3.
+  - **T3 complete + `promotion_eligible: true`**: call
+    `share_finding(finding_type="result", ...)`.
+  - **T1/T2 FAIL** (gate missed, NaN, divergence): call
+    `share_finding(finding_type="insight", ...)` with `tier=T1` (or T2)
+    in metrics so the frontier filter excludes it from primary
+    promotion AND the negative finding is preserved for future peers. If the
+    result reaches the complete T3 protocol, preserve the evaluator's
+    `frontier_lane="performance"` source and all Pareto-axis metrics. Praxist
+    independently selects confirmed and incubator targets; do not relabel the
+    canonical result based on a guessed final lane. Keep non-T3 work as
+    task-candidate or diagnostic evidence.
+  - **Speculative idea BEFORE testing** (e.g. you've read the frontier,
+    spotted a gap, and want to publish your design hypothesis so other
+    peers don't duplicate the search): call
+    `share_finding(finding_type="hypothesis", ...)` with NO tier metadata
+    and NO `promotion_eligible`. Hypotheses are NEVER promoted to the
+    leaderboard — they feed Gen1+'s exploration map, not the rankings.
+    This is the path that brings back **prediction-driven exploration**:
+    "I bet a cosine-schedule rho will beat static rho — here's the
+    sketch — testing in 30 min." Past runs that produced 100+ hypotheses
+    per cohort outpaced runs with zero on idea breadth.
+
+### When to include `design_dimensions`
+
+Always include a `design_dimensions` field on `result` and
+`hypothesis` findings — a flat dict mapping each of the 6 axes to a
+short string describing what was actually implemented. A PI contract's
+`planned_dimensions` is intent only; do not copy it when the realized design
+differs or is unknown. It is mandatory in **gen 0** (free-explore) and on any
+gen ≥ 1 finding from a peer whose PI role contract spawns a
+substantively new variant (`exploit`, `bridge`, `anti_mainline`).
+`falsifier` and `theorist` roles are exempt (they publish insights /
+challenges, not new variants).
+
+### How to find the runner's output JSON (filename schema)
+
+The runner writes one `*_multi_benchmark.json` per tier. Filenames depend
+on whether you used a built-in optimizer or a custom variant:
+
+  - Built-in:  `<opt>_<tier>_multi_benchmark.json`
+    (e.g. `sam_T3_multi_benchmark.json`)
+  - Custom:    `custom_<variant_stem>_<tier>_multi_benchmark.json`
+    (e.g. `custom_my_variant_T3_multi_benchmark.json` — the stem is
+    `Path(variant_path).stem`, with dots replaced by underscores)
+
+The simplest correct way to load it from your peer code is to glob —
+no slug-rule reasoning required:
+
+```python
+import glob, json
+matches = sorted(glob.glob(
+    "{{ results_dir }}/<experiment_name>/*_T3_multi_benchmark.json"
+))
+assert matches, "No T3 multi_benchmark.json found — did you actually run T3?"
+with open(matches[0]) as f:
+    bench = json.load(f)
+```
+
+### Example A — T3 success path (call `share_finding` with `finding_type="result"`)
+
+The 4 Pareto axes are **orthogonal** (since v2026-05-01): aggregate
+accuracy, efficiency, aggregate generalization gap, and flatness. The
+runner emits the cross-dataset aggregates and the sharpness measurement
+at the **top level** of `bench`; you copy them verbatim — no need to
+compute means yourself.
+
+> **Caveat on the cross-dataset means**: both `mean_test_accuracy`
+> and `mean_train_test_gap` are plain arithmetic means across the
+> per-dataset values. The 3 datasets have very different accuracy
+> ceilings (cifar10 ~95%, cifar100 ~75%, tiny-IN ~60%) and gap
+> baselines (cifar10 ~3-5%, cifar100 ~10-15%, tiny-IN ~20-25%).
+> So a +0.5pp accuracy gain on cifar10 is much easier than +0.5pp
+> on tiny-IN, and reducing tiny-IN's larger gap by 1pp moves the
+> mean only ~0.33pp. A variant that overfits to cifar10 can game
+> both axes. If you suspect this is happening, the per-dataset
+> numbers are still recorded in `bench["per_dataset"]` for diagnosis.
+
+**Defensive read pattern (REQUIRED)**: any of the 4 axis values may
+be `None` if the runner couldn't compute it (e.g. sharpness probe
+budget-skipped on every seed, or one dataset failed). The runner
+ALSO sets `promotion_eligible=False` in that case (R2 C1 fix), and
+your code MUST refuse to publish a non-promotable result. Use this
+guard:
+
+```python
+# REFUSE to publish if any Pareto axis is missing — leaderboard
+# would silently exclude the variant otherwise. The canonical evaluator
+# emits `wall_time_seconds_total` from the completed evaluation cells on the
+# current host. Do not compare current timing with a static timing measured on
+# another host.
+observed_train_seconds = bench.get("wall_time_seconds_total")
+runner_axes = ["mean_test_accuracy", "mean_train_test_gap", "sharpness_top_eigen"]
+missing = [k for k in runner_axes if bench.get(k, {}).get("mean") is None]
+if (
+    not isinstance(observed_train_seconds, (int, float))
+    or observed_train_seconds != observed_train_seconds
+):
+    missing.append("wall_time_seconds_total")
+if missing or not bench.get("promotion_eligible"):
+    raise RuntimeError(
+        f"Cannot publish T3 result: missing axes {missing} or "
+        f"promotion_eligible=False (see runner log "
+        f"'[PARETO INCOMPLETE]'). Re-run with more budget headroom, "
+        f"or fix the underlying evaluator failure."
+    )
+```
+
+```python
+share_finding(
+    finding_type="result",
+    title="MyVariant SAM with adaptive rho",
+    metrics={
+      # MANDATORY tier metadata — copied verbatim from bench:
+      "tier": bench["tier"],                              # "T3"
+      "promotion_eligible": bench["promotion_eligible"],  # True
+      "effort_ratio": bench["effort_ratio"],              # generic maturity telemetry
+      "coverage_ratio": bench["coverage_ratio"],          # generic maturity telemetry
+      "frontier_lane": bench["frontier_lane"],            # "performance"
+      "promotion_lane": bench["promotion_lane"],          # same source label
+
+      # 4 ORTHOGONAL Pareto axes (primary + 3 anchors):
+      "mean_test_accuracy":     bench["mean_test_accuracy"]["mean"],     # cross-dataset accuracy
+      "wall_time_seconds_total": observed_train_seconds,                 # same-host efficiency
+      "mean_train_test_gap":    bench["mean_train_test_gap"]["mean"],    # cross-dataset generalization
+      "sharpness_top_eigen":    bench["sharpness_top_eigen"]["mean"],    # flatness (Hessian top eigenvalue)
+
+      # Per-dataset detail (NOT in Pareto, but recorded for post-hoc analysis):
+      "test_accuracy_cifar100":     bench["per_dataset"]["cifar100"]["test_accuracy"]["mean"],
+      "test_accuracy_cifar10":      bench["per_dataset"]["cifar10"]["test_accuracy"]["mean"],
+      "test_accuracy_tiny_imagenet": bench["per_dataset"]["tiny-imagenet"]["test_accuracy"]["mean"],
+      "train_test_gap_cifar100":     bench["per_dataset"]["cifar100"]["train_test_gap"]["mean"],
+      "train_test_gap_cifar10":      bench["per_dataset"]["cifar10"]["train_test_gap"]["mean"],
+      "train_test_gap_tiny_imagenet": bench["per_dataset"]["tiny-imagenet"]["train_test_gap"]["mean"],
+    },
+    design_dimensions={
+      "computational_mechanism": "two-step adversarial perturbation",
+      "adaptation_strategy": "gradient-norm adaptive rho",
+      "information_source": "gradient + parameter magnitude",
+      "compute_efficiency_profile": "1.4x SGD",
+      "inductive_prior": "rho should scale with local gradient norm",
+      "decomposition_topology": "single global rho",
+    },
+    notes="...",
+)
+```
+
+### Example B — T1 (or T2) FAIL path (`finding_type="insight"`, partial metrics only)
+
+When a variant fails the T1 or T2 gate (NaN, divergence, or far below
+baseline), STOP — do NOT escalate to higher tiers. Instead, record the
+negative finding so future peers don't re-attempt the same dead end.
+
+T1 only ran cifar100 — the bench dict will NOT have `cifar10` or
+`tiny-imagenet` keys, so omit those metrics:
+
+```python
+import glob, json
+matches = sorted(glob.glob(
+    "{{ results_dir }}/<experiment_name>/*_T1_multi_benchmark.json"
+))
+with open(matches[0]) as f:
+    bench = json.load(f)
+
+share_finding(
+    finding_type="insight",   # NOT "result" — keeps it out of primary promotion
+    title="MyVariant SAM — T1 gate FAIL",
+    metrics={
+      "tier": bench["tier"],                              # "T1"
+      "promotion_eligible": bench["promotion_eligible"],  # False
+      "effort_ratio": bench["effort_ratio"],
+      "coverage_ratio": bench["coverage_ratio"],
+      "test_accuracy_cifar100": bench["per_dataset"]["cifar100"]["test_accuracy"]["mean"],
+    },
+    design_dimensions={ ... },   # honest articulation; helps next gen avoid the dead end
+    notes="T1 best_acc=X < 0.85*vanilla_sam=Y; <one-line root cause if known>",
+)
+```
+
+The SAM task-local evaluator rejects findings from primary-metric and
+anchor-metric ranking unless they carry `tier="T3"` and
+`promotion_eligible=true`. The `insight` type just clarifies the intent.
+
+### Example C — Hypothesis path (BEFORE running anything)
+
+Use this when you've identified a frontier gap or a design idea worth
+publishing before you spend GPU on it. No tier or `promotion_eligible`
+required — hypotheses are exempt from primary-metric promotion by
+design (they have no T3 evidence yet).
+
+```python
+share_finding(
+    finding_type="hypothesis",
+    title="Cosine rho schedule should improve gap on long-tailed datasets",
+    content=(
+        "Frontier currently has all variants with static rho. Reading "
+        "the recent CR-SAM paper + our own GRASAM result (which adapts "
+        "rho per-step), I conjecture that a smooth cosine rho schedule "
+        "(rho_max → rho_min over training) will reduce gap by ~0.5pp "
+        "on cifar100 without hurting accuracy, because late-training "
+        "needs less perturbation. Will test as `cosrho_sam` in 30min."
+    ),
+    metrics={},                         # no metrics yet — hypothesis only
+    variant_name="cosrho_sam",          # the variant you intend to build
+    design_dimensions={
+      "adaptation_strategy": "cosine rho schedule (rho_max=0.10 → rho_min=0.02)",
+      "computational_mechanism": "two-step adversarial (vanilla SAM step)",
+      "information_source": "gradient + training_progress",
+      # ... fill the rest if you have a clear take
+    },
+    notes="Pre-registration of design idea; no T3 data yet.",
+)
+```
+
+Hypotheses do NOT need `tier` / `promotion_eligible` — they're
+deliberately ineligible for the leaderboard. They serve to broaden the
+collective exploration map: future peers reading the Finding Graph see
+"this design space has been claimed" and pick orthogonal directions.
+
+The system uses `design_dimensions` for diversity comparison only — it
+doesn't affect ranking. Lying about `design_dimensions` defeats the
+purpose; future generations read your honest articulation. Lying about
+`tier` corrupts the frontier outright.

@@ -1,0 +1,38 @@
+schema_version: 1
+name: sam_pareto_tiered
+kind: evaluation
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: SAM tiered evaluation and Pareto frontier policy over accuracy, efficiency, gap, and sharpness.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - evaluation.tiered_t1_t2_t3
+  - evaluation.pareto_frontier
+  - evaluation.requires_tier
+  - evaluation.multi_anchor_promotion
+  - evaluation.frontier_role_filter
+  - evaluation.partial_summary_preservation
+evaluation:
+  primary_metrics:
+    - mean_test_accuracy
+    - test_accuracy_cifar100
+    - test_accuracy_cifar10
+    - test_accuracy_tiny_imagenet
+  efficiency_metrics:
+    - compute_overhead_ratio
+    - wall_time_seconds_total
+    - memory_mb
+  required_tiers:
+    - T1
+    - T2
+    - T3
+entrypoint: evaluator:create_evaluation
+agent_entrypoint: run.py
+code:
+  - evaluator.py
+  - run.py
+assets: []

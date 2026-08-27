@@ -1,0 +1,38 @@
+schema_version: 1
+name: codex_sdk
+kind: agent_runtime
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Official Codex Python SDK runtime using long-lived local app-server clients.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - runtime.codex_sdk
+  - runtime.agent_run_request
+  - runtime.async_event_stream
+  - runtime.app_server
+  - runtime.managed_credentials
+  - runtime.mcp_stdio
+  - runtime.mock_transcript_conformance
+runtime:
+  execution_modes:
+    - native_agent_run_request
+  compatible_model_providers:
+    - model_provider:openai_compatible
+    - model_provider:openrouter
+    - model_provider:deepseek_alias
+  cache_strategy: runtime_auto_cache
+  event_schema: praxist.agent_event.v1
+  usage_reporting: usage_or_usage_unknown
+entrypoint: adapter:create_runtime
+code:
+  - adapter.py
+  - _auth.py
+  - _events.py
+  - _mcp.py
+  - _relay.py
+  - _sandbox.py
+assets: []

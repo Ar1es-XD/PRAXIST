@@ -1,0 +1,4 @@
+interface:
+  display_name: "Praxist Takeover Codex"
+  short_description: "Launch Praxist in Codex-native mode"
+  default_prompt: "Use $praxist-takeover-codex to onboard, initialize, validate evidence-gated generation closing, and launch the current research project in Codex-native mode with catalog-verified gpt-5.6-luna and no API keys."

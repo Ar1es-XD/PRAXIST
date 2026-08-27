@@ -1,0 +1,77 @@
+{
+  "schema_version": "machine_learning_task_context_template.v1",
+  "task": {
+    "objective": "Replace with the machine learning objective.",
+    "prediction_artifact": {
+      "format": "Replace with the artifact format consumed by the evaluator.",
+      "required_fields": [],
+      "invalid_conditions": []
+    },
+    "primary_metric": {
+      "name": "task_score",
+      "direction": "maximize"
+    },
+    "ranking_policy": {
+      "domain_convention": "Replace with raw mean, lower confidence bound, Pareto, robust composite, or task-specific rule.",
+      "variance_or_confidence_affects_ranking": "unknown",
+      "robust_metrics": [],
+      "frontier_axis_notes": "If robustness matters, add lower-bound/std/risk axes to evaluation.frontier_lanes."
+    }
+  },
+  "data": {
+    "public_or_allowed_inputs": [],
+    "held_out_or_forbidden_inputs": [],
+    "leakage_risks": []
+  },
+  "evaluator": {
+    "entrypoint": "evaluations/primary/run.py",
+    "preliminary_mode": "Replace with the smallest safe evaluator mode for wiring/failure triage only.",
+    "aligned_mode": "Replace with the fixed aligned protocol used for prioritization before complete evaluation.",
+    "complete_mode": "Replace with the complete evaluator mode.",
+    "complete_expected_budget": {
+      "epochs": null,
+      "gradient_steps": null,
+      "seeds": null,
+      "folds": null,
+      "evaluation_units": null
+    },
+    "protocol_integrity_output": {
+      "required": true,
+      "fields": [
+        "expected_budget",
+        "completed_budget",
+        "protocol_integrity_passed",
+        "integrity_failure_reason"
+      ]
+    },
+    "aligned_evidence_contract": {
+      "same_as_complete": [
+        "evaluator code path",
+        "primary metric direction",
+        "aggregation semantics",
+        "invalid-result rules",
+        "leakage checks",
+        "same or near-complete evaluation-unit coverage"
+      ],
+      "reduce_first": [
+        "fixed epochs",
+        "fixed gradient steps",
+        "fixed rollout or simulator horizon",
+        "fixed inner-loop iterations",
+        "fixed repeated restarts or checkpoint sweeps"
+      ],
+      "reduce_evaluation_units_only_if_unavoidable": [
+        "documented coverage ratio",
+        "stratified coverage of all major regimes",
+        "hard-case inclusion",
+        "omitted-unit rationale"
+      ]
+    }
+  },
+  "evidence": {
+    "confirmed": "Complete-evaluation result with complete metric evidence.",
+    "incubator": "Lower-admission durable long-term library for task-authorized, protocol-passed, non-suspect Pareto/new-high variants that need follow-up before clean confirmation.",
+    "task_candidate": "Promising immature result that needs follow-up.",
+    "diagnostic": "Control, failure, invalid-output, or process evidence."
+  }
+}

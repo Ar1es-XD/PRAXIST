@@ -1,0 +1,37 @@
+schema_version: 1
+name: template_external_validity_pi
+kind: role
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: External-validity PI role template for high-stakes task claims.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - role.skill
+  - pi.memo
+  - pi.private_kb
+role:
+  role_id: external_validity
+  legacy_role_id: external_validity
+  display_name: External Validity PI Template
+  role_kind: pi
+  default_model_profile_ref: strong_reasoner
+  output_schema_ref: core:pi_memo.v1
+  tool_scope:
+    - filesystem.read
+    - memory_tools.panel_read
+  private_kb:
+    - private_kb/cross_arch_protocols.md
+  fixed_questions:
+    - Does the claim survive a sentinel setting different from the one that found it?
+    - Does it survive relevant data, environment, or benchmark variation?
+    - Does it survive a stronger validation budget?
+    - Which reviewer attack patterns apply to this claim?
+    - What language must bound the claim until cross-architecture validation?
+code: []
+assets:
+  - skill.md
+  - private_kb/*.md

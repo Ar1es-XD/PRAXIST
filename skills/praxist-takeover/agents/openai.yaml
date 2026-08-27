@@ -1,0 +1,4 @@
+interface:
+  display_name: "Praxist Takeover"
+  short_description: "Onboard, initialize, validate, and launch Praxist"
+  default_prompt: "Use $praxist-takeover to run complete onboarding and the current task-initialization workflow, preserve the user's explicit protocol and launch instructions, validate the resulting task-owned maturity, lanes, QD, resource, baseline, and runtime contracts, start the research run without redundant confirmation when the user already authorized it, and report the independent `praxist --monitor --run-id <run_id>` foreground TUI command without opening it automatically."

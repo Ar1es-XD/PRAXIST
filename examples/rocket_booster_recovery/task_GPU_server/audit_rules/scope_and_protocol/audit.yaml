@@ -1,0 +1,74 @@
+schema_version: 1
+name: rocket_booster_recovery_scope_and_protocol
+kind: task_audit
+version: 2.0.2
+protocol_version: 2
+stability: frozen
+mode: declarative
+description: Blocking classical-control scope, channel-lock, and evidence rules.
+compatibility:
+  praxist_core: ">=0.3.0,<1.0"
+dependencies: []
+capabilities:
+  - audit.scope_boundary
+  - audit.evidence_maturity
+  - audit.control_contract
+audit:
+  checks:
+    - id: immutable_boundary
+      severity: blocking
+      criteria:
+        - Researchers may edit only candidate controller.py, controller_config.json, and variant.json.
+        - Plant, integrator, contact model, evaluator, data banks, task harness, Praxist core, and generic plugins are immutable.
+    - id: classical_methods_only
+      severity: blocking
+      criteria:
+        - Neural networks, reinforcement learning, learned policies, learned residuals, and online learning are forbidden.
+        - Every promoted method must be finite-dimensional, deterministic, auditable classical control or optimization.
+    - id: current_run_only_provenance
+      severity: blocking
+      criteria:
+        - Candidate code may originate only from the frozen task baseline or a canonical parent in the current run.
+        - Earlier runs, packaged champions, sibling checkouts, historical scores, and Git history must not be inspected or reused.
+        - Exact replication must name a current-run canonical parent and may not import controller files from outside the current run.
+    - id: actuator_channels
+      severity: blocking
+      criteria:
+        - RCS_x may command body-axis roll torque only.
+        - RCS_y, RCS_z, and grid_roll must remain bit-exact +0.0 at both boundaries.
+        - Pitch and yaw may use only gimbal_y/z and grid_y/z.
+    - id: mature_evidence
+      severity: blocking
+      criteria:
+        - Only complete 13312-unit evidence with effort_ratio=coverage_ratio=1.0 may mature, parent, or satisfy normal close.
+        - Complete parent evidence must preserve evaluator source lane performance; peers may not relabel it confirmed or incubator.
+        - Development, canary, roll-only, late, suspect, failed, and partial results cannot become parents.
+    - id: single_first_contact_success
+      severity: blocking
+      criteria:
+        - landing_success_rate is the only landing-success predicate; all source, hard-OOD, and radius-bin rates reuse it.
+        - Initial fuel is fixed at 7000 kg and success requires remaining main fuel strictly greater than 2 percent.
+        - Landing scoring ends at interpolated first leg contact with COM and lowest-contact-leg downward speed no greater than 1 m/s and lateral error no greater than 5 m.
+    - id: no_gear_damping_landing_credit
+      severity: blocking
+      criteria:
+        - Post-contact spring or damper response contributes zero scored steps and zero landing credit.
+        - Deliberate engine-cut or under-supported gear-sink/drop control whose safety depends on damper arrest is forbidden.
+        - A coast segment is admissible only when powered braking reaches the first-contact speed gate before any leg touches.
+    - id: observability
+      severity: warning
+      criteria:
+        - Do not claim post-contact dwell, bounce, leg load, slip, or overturn metrics as landing evidence; they are intentionally unscored.
+    - id: managed_gpu_execution
+      severity: blocking
+      criteria:
+        - Ordinary peer shells must preserve the task-provided empty CUDA_VISIBLE_DEVICES and NVIDIA_VISIBLE_DEVICES masks.
+        - Every formal GPU evaluation must use the central scheduler and exactly its assigned physical GPU UUID.
+        - Ad-hoc JAX diagnostics and small-sample trajectory checks must run on CPU and cannot be promoted as evaluator evidence.
+    - id: result_ownership
+      severity: blocking
+      criteria:
+        - Every scheduled evaluator command must use the exact --output-dir option spelling recognized by Praxist ownership parsing.
+        - Every peer, variant, and protocol stage must write to a unique results/gen_<N>/<peer_id>/<variant_id>/<mode> directory.
+        - Scheduler submissions must set cwd to the immutable task root and must never use the run-wide results directory as cwd.
+assets: []

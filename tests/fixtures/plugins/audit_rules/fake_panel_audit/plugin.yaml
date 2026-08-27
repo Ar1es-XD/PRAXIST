@@ -1,0 +1,17 @@
+schema_version: 1
+name: fake_panel_audit
+kind: audit_rule
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Deterministic audit coverage for fake panel.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - audit.fake
+entrypoint: rules:create_audit_rule
+code:
+  - rules.py
+assets: []

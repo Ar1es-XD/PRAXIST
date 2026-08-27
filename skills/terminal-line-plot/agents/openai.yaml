@@ -1,0 +1,4 @@
+interface:
+  display_name: "Terminal Line Plot"
+  short_description: "ASCII line charts in the terminal"
+  default_prompt: "Use $terminal-line-plot to draw a terminal line chart for this numeric series."

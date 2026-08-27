@@ -1,0 +1,24 @@
+{
+  "schema_version": "praxist.task_asset_closure.v1",
+  "task_id": "template",
+  "raw_dataset_packaged_with_task": false,
+  "harness": {
+    "policy": "replace assets/harness/ with task-owned executable code"
+  },
+  "baselines": {
+    "curated_results": "assets/baselines/results.jsonl",
+    "summary": "assets/baselines/curated_baseline_summary.md"
+  },
+  "literature": [
+    "assets/literature/literature_pack_template.md"
+  ],
+  "dataset_metadata": {
+    "policy": "replace with task-owned dataset metadata; do not commit raw data"
+  },
+  "reference_implementations": {
+    "manifest": "assets/reference_implementations/manifest.json",
+    "root": "assets/reference_implementations",
+    "policy": "optional authoring references; replace for real tasks"
+  },
+  "regression_fixtures": []
+}

@@ -1,0 +1,188 @@
+[project]
+name = "praxist"
+version = "0.3.0"
+description = "Praxist — multi-agent, multi-generation autonomous ML research system"
+readme = "README.md"
+license = { file = "LICENSE.md" }
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",
+    "jinja2>=3.1",
+    "pydantic>=2.7,<3",
+]
+
+[project.urls]
+Documentation = "https://praxist.sapient.inc/en/docs"
+
+[project.optional-dependencies]
+agents = [
+    "claude-agent-sdk==0.2.136",
+    # Runtime-hosted stdio servers import MCP directly, so it is an explicit
+    # dependency rather than an incidental transitive dependency.
+    "mcp>=1.0",
+    "anthropic>=0.34",
+    "openai>=1.40",
+    "httpx>=0.27",
+    "requests>=2.32",
+    "trafilatura>=1.12",
+    "pdf2image>=1.17",
+    "pytesseract>=0.3",
+    "pypdf>=4.0",
+]
+storage = [
+    "boto3>=1.34",
+    "botocore>=1.34",
+]
+codex = [
+    "openai-codex==0.147.0",
+    "codex-relay==0.5.5",
+    # Bundled MCP factories call claude_agent_sdk.create_sdk_mcp_server.
+    "claude-agent-sdk==0.2.136",
+    "mcp>=1.0",
+]
+product-usage-server = [
+    "alembic>=1.16,<2",
+    "fastapi>=0.116,<1",
+    "psycopg[binary]>=3.2,<4",
+    "sqlalchemy>=2.0,<3",
+    "uvicorn>=0.35,<1",
+]
+docs = [
+    "mkdocs-material>=9.7,<10",
+    "mkdocstrings[python]>=1.0,<2",
+]
+
+[project.scripts]
+praxist = "praxist.cli:main"
+praxist-uninstall = "praxist.cli.uninstall:main"
+praxist-collector = "praxist.product_usage.app:main"
+praxist-retention = "praxist.product_usage.retention:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["praxist"]
+
+# Ship documentation, examples, task templates, scripts, and agent skill sources with pip artifacts.
+#
+# - sdist keeps the repository layout (`docs/`, `examples/`, `templates/`,
+#   `scripts/`, `skills/`) intact.
+# - wheel installs them as package resources to avoid polluting the
+#   site-packages root with generic top-level names.
+[tool.hatch.build.targets.wheel.force-include]
+"docs" = "praxist/resources/docs"
+"examples" = "praxist/resources/examples"
+"templates" = "praxist/resources/templates"
+"scripts" = "praxist/resources/scripts"
+"skills" = "praxist/resources/skills"
+# The packaged task templates use these deterministic offline plugins.
+"tests/fixtures/plugins" = "praxist/testing/fixtures/plugins"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/.venv*"]
+
+[tool.hatch.build.targets.sdist.force-include]
+"docs" = "docs"
+"examples" = "examples"
+"templates" = "templates"
+"scripts" = "scripts"
+"skills" = "skills"
+
+[dependency-groups]
+dev = [
+    "coverage==7.15.1",
+    "httpx>=0.28,<1",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.9",
+    "pyrefly>=1.0",
+    "types-PyYAML>=6.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",
+    "B008",
+    "SIM108",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["praxist"]
+
+# Pre-existing nested-`with` patterns in two legacy test files. Collapsing
+# them can subtly reorder __enter__ side effects across patch contexts, and
+# the tests were not written here. Remove when the file is touched by a
+# future backfill issue and the collapses are verified.
+[tool.ruff.lint.per-file-ignores]
+"tests/hardening/test_refactor_hardening.py" = ["SIM117"]
+"tests/legacy_migration/test_runtime_migration_inventory.py" = ["SIM117"]
+
+[tool.pyrefly]
+project-includes = ["praxist"]
+# project-excludes split into two groups:
+#   1. Permanently outside type-checking: tests/tasks/scripts/old/templates.
+#   2. Pre-existing type debt on core_arch — 33 legacy files with ~82 type
+#      errors. Each one must graduate out of this list as it's touched by a
+#      subsequent backfill issue (tracking: #57). New files added by backfill
+#      PRs MUST type-check from day 1.
+project-excludes = [
+    "tests",
+    "tasks",
+    "scripts",
+    "old",
+    "templates",
+    "praxist/core/modeling.py",
+    "praxist/core/redaction.py",
+    "praxist/core/replay.py",
+    "praxist/core/role_skills.py",
+    "praxist/core/tool_servers.py",
+    "praxist/core/trajectory.py",
+    "praxist/deliver.py",
+    "praxist/infrastructure/runpod.py",
+    "praxist/infrastructure/s3_utils.py",
+    "praxist/plugins/agent_runtimes/claude_sdk/adapter.py",
+    "praxist/plugins/agent_runtimes/codex_sdk/adapter.py",
+    "praxist/plugins/tools/evaluation_tools/adapter.py",
+    "praxist/plugins/tools/finding_graph_query/adapter.py",
+    "praxist/plugins/tools/frontier_tools/adapter.py",
+    "praxist/plugins/tools/memory_tools/adapter.py",
+    "praxist/plugins/tools/prior_work_tools/adapter.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/frontier.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/generation_loop.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/gpu_governor.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/multi_pi/legacy_two_round_executor.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/pi_agent.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/research_memory/card_builder.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/research_memory/context_auditor.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/research_memory/metrics_logger.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/tools/findings_sync.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/tools/http_utils.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/tools/local_store.py",
+    "praxist/plugins/workflow_stages/research_loop/backend/tools/training_timeout.py",
+    "praxist/plugins/workflow_stages/research_loop/c5_materializer.py",
+    "praxist/plugins/workflow_stages/research_loop/stage.py",
+    "praxist/plugins/workflow_stages/research_loop/startup.py",
+    "praxist/task_spec.py",
+]
+python-version = "3.11.0"
+infer-with-first-use = false
+
+# Defensive int()/str()/float()/bool() casts at validation boundaries
+# (often paired with try/except TypeError/ValueError) trigger this rule
+# even though the annotation says the cast is redundant. The annotation
+# is an assertion, not a guarantee — leave the casts in.
+[tool.pyrefly.errors]
+unnecessary-type-conversion = false

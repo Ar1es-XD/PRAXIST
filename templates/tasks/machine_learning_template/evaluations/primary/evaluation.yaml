@@ -1,0 +1,41 @@
+schema_version: 1
+name: machine_learning_primary
+kind: evaluation
+version: 0.1.0
+protocol_version: 1
+stability: template
+description: Placeholder primary evaluator contract for general machine learning tasks.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - evaluation.placeholder
+  - evaluation.machine_learning
+  - evaluation.evidence_maturity
+evaluation:
+  primary_metrics:
+    - task_score
+  evidence_stages:
+    - preliminary
+    - aligned
+    - partial
+    - complete
+    - diagnostic
+    - control
+  staged_protocols:
+    preliminary:
+      ranking_allowed: false
+      purpose: wiring_failure_triage
+    aligned:
+      ranking_allowed: true
+      full_protocol_semantics_required: true
+      near_full_data_coverage_required: true
+      compute_savings_prefer_reduced_training_budget: true
+    complete:
+      ranking_allowed: true
+      parent_promotion_allowed: true
+agent_entrypoint: run.py
+code:
+  - run.py
+assets: []

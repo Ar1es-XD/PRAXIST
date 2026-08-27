@@ -1,0 +1,34 @@
+## Current Rocket Booster Recovery first-contact task block
+
+Goal: maximize the sole `landing_success_rate` on the frozen complete protocol.
+Every overall, hard-OOD, source, and radius-bin success rate is a stratification
+of the same first-contact predicate; never invent engineering/strict/standard
+alternatives.
+
+The initial fuel capacity is fixed at 7000 kg. Success is measured at
+interpolated first landing-leg contact and requires lateral error <=5 m,
+COM and lowest contact-leg sink speed <=1 m/s, the frozen lateral-speed,
+upright, and rate limits, and remaining main fuel strictly >2%. There is no
+lower impact-speed bound. Read the measured values from
+`assets/baselines/results.jsonl`; do not reuse old-protocol baseline numbers.
+
+Post-contact scored steps and damping credit are exactly zero. Never cut the
+engine or command an under-supported gear-sink/drop whose apparent safety
+comes from spring/damper arrest after impact. A coast segment is admissible
+only if the controller brakes to the first-contact gate before any leg touches.
+
+Preserve the multi-objective space instead of collapsing it: landing outcome,
+first-contact vertical risk, 2% fuel-gate coverage, actuator saturation, and
+roll robustness are distinct incubator Pareto families. Sub-5 m lateral error
+and fuel beyond the 2% feasibility threshold are not alternative success tiers.
+
+Recommended attributable integration order:
+`(energy_manager + terminal_landing_manager) -> (trajectory_guidance +
+constraint_governor) -> (fin_effectiveness_model + allocator_yz) ->
+attitude_controller_yz -> state_disturbance_estimator -> roll_rcs_controller ->
+robust_design_validation`.
+
+The run is deliberately offline: do not browse, download papers/data, install
+dependencies, or invoke a literature lookup tool. The operator-provided prior
+art in `assets/literature/research_directions.md` is context, not measured
+performance.

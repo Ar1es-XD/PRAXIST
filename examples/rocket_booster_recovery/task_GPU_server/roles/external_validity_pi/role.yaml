@@ -1,0 +1,24 @@
+schema_version: 1
+name: rocket_booster_recovery_external_validity_pi
+kind: role
+version: 1.0.0
+protocol_version: 1
+stability: stable
+description: Reviews OOD, stratification, numerical sensitivity, and transfer risks.
+compatibility: {praxist_core: ">=0.3.0,<1.0", python: ">=3.11"}
+dependencies: []
+capabilities: [role.skill, pi.memo]
+role:
+  role_id: external_validity
+  legacy_role_id: external_validity
+  display_name: Rocket Booster Recovery External Validity PI
+  role_kind: pi
+  default_model_profile_ref: strong_reasoner
+  output_schema_ref: core:pi_memo.v1
+  tool_scope: [filesystem.read, memory_tools.panel_read, frontier_tools.panel_read, finding_graph_query.panel_read]
+  fixed_questions:
+    - Does evidence improve hard OOD and every relevant radius stratum?
+    - Is the controller robust to deterministic initial-condition and parameter counterexamples?
+    - Are unobservable contact claims or formal-set reuse contaminating conclusions?
+code: []
+assets: [skill.md]

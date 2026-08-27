@@ -1,0 +1,619 @@
+{
+  "$defs": {
+    "ErrorScope": {
+      "description": "Closed scope vocabulary for aggregate operational errors.",
+      "enum": [
+        "run",
+        "generation",
+        "peer"
+      ],
+      "title": "ErrorScope",
+      "type": "string"
+    },
+    "ErrorStage": {
+      "description": "Closed lifecycle-stage vocabulary for aggregate errors.",
+      "enum": [
+        "setup",
+        "launch",
+        "execution",
+        "finalization",
+        "reconciliation"
+      ],
+      "title": "ErrorStage",
+      "type": "string"
+    },
+    "ErrorSummary": {
+      "additionalProperties": false,
+      "description": "Bounded aggregate error count without message or task content.",
+      "properties": {
+        "count": {
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "count_capped": {
+          "default": false,
+          "title": "Count Capped",
+          "type": "boolean"
+        },
+        "error_code": {
+          "enum": [
+            "PRX-CAPACITY",
+            "PRX-PEER-LAUNCH",
+            "PRX-PEER-RUNTIME",
+            "PRX-RUNTIME",
+            "PRX-RUN-FAILED",
+            "PRX-UNKNOWN"
+          ],
+          "title": "Error Code",
+          "type": "string"
+        },
+        "error_type": {
+          "$ref": "#/$defs/ErrorType"
+        },
+        "reason_code": {
+          "$ref": "#/$defs/ReasonCode"
+        },
+        "scope": {
+          "$ref": "#/$defs/ErrorScope"
+        },
+        "stage": {
+          "$ref": "#/$defs/ErrorStage"
+        }
+      },
+      "required": [
+        "scope",
+        "stage",
+        "error_type",
+        "error_code",
+        "reason_code",
+        "count"
+      ],
+      "title": "ErrorSummary",
+      "type": "object"
+    },
+    "ErrorType": {
+      "description": "Closed, task-agnostic category vocabulary for aggregate errors.",
+      "enum": [
+        "configuration",
+        "resource",
+        "orchestration",
+        "runtime",
+        "external_dependency",
+        "storage",
+        "unknown"
+      ],
+      "title": "ErrorType",
+      "type": "string"
+    },
+    "GenerationFinishedEvent": {
+      "additionalProperties": false,
+      "description": "Aggregate snapshot emitted after a durable generation boundary.",
+      "properties": {
+        "consent_notice_version": {
+          "enum": [
+            2,
+            3
+          ],
+          "title": "Consent Notice Version",
+          "type": "integer"
+        },
+        "environment_id": {
+          "format": "uuid4",
+          "title": "Environment Id",
+          "type": "string"
+        },
+        "error_summaries": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ErrorSummary"
+          },
+          "maxItems": 16,
+          "title": "Error Summaries",
+          "type": "array"
+        },
+        "error_summaries_truncated": {
+          "default": false,
+          "title": "Error Summaries Truncated",
+          "type": "boolean"
+        },
+        "event_id": {
+          "format": "uuid4",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_sequence": {
+          "minimum": 1,
+          "title": "Event Sequence",
+          "type": "integer"
+        },
+        "event_type": {
+          "const": "generation_finished",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "generation_ordinal": {
+          "minimum": 0,
+          "title": "Generation Ordinal",
+          "type": "integer"
+        },
+        "occurred_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+          "title": "Occurred At",
+          "type": "string"
+        },
+        "peer_cancelled_count": {
+          "minimum": 0,
+          "title": "Peer Cancelled Count",
+          "type": "integer"
+        },
+        "peer_completed_count": {
+          "minimum": 0,
+          "title": "Peer Completed Count",
+          "type": "integer"
+        },
+        "peer_failed_count": {
+          "minimum": 0,
+          "title": "Peer Failed Count",
+          "type": "integer"
+        },
+        "peer_planned_count": {
+          "minimum": 0,
+          "title": "Peer Planned Count",
+          "type": "integer"
+        },
+        "peer_running_count": {
+          "minimum": 0,
+          "title": "Peer Running Count",
+          "type": "integer"
+        },
+        "peer_unknown_count": {
+          "minimum": 0,
+          "title": "Peer Unknown Count",
+          "type": "integer"
+        },
+        "planned_peer_count": {
+          "minimum": 0,
+          "title": "Planned Peer Count",
+          "type": "integer"
+        },
+        "praxist_version": {
+          "maxLength": 32,
+          "minLength": 1,
+          "pattern": "^[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*$",
+          "title": "Praxist Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 2,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "telemetry_run_id": {
+          "format": "uuid4",
+          "title": "Telemetry Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "praxist_version",
+        "consent_notice_version",
+        "event_id",
+        "environment_id",
+        "telemetry_run_id",
+        "event_sequence",
+        "occurred_at",
+        "generation_ordinal",
+        "planned_peer_count",
+        "peer_planned_count",
+        "peer_running_count",
+        "peer_completed_count",
+        "peer_cancelled_count",
+        "peer_failed_count",
+        "peer_unknown_count",
+        "event_type"
+      ],
+      "title": "GenerationFinishedEvent",
+      "type": "object"
+    },
+    "ReasonCode": {
+      "description": "Closed reason vocabulary for privacy-bounded failure summaries.",
+      "enum": [
+        "auth_error",
+        "quota_exhausted",
+        "rate_limited",
+        "timeout",
+        "provider_unavailable",
+        "runtime_error",
+        "tool_unavailable",
+        "invalid_request",
+        "budget_denied",
+        "budget_expired",
+        "capacity_unavailable",
+        "process_start_failed",
+        "state_unreadable",
+        "unexpected_termination",
+        "unknown"
+      ],
+      "title": "ReasonCode",
+      "type": "string"
+    },
+    "RunFinishedEvent": {
+      "additionalProperties": false,
+      "description": "Terminal aggregate snapshot for a normally observed Run process.",
+      "properties": {
+        "active_duration_minutes": {
+          "anyOf": [
+            {
+              "maximum": 43200,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Active Duration Minutes"
+        },
+        "consent_notice_version": {
+          "enum": [
+            2,
+            3
+          ],
+          "title": "Consent Notice Version",
+          "type": "integer"
+        },
+        "duration_capped": {
+          "title": "Duration Capped",
+          "type": "boolean"
+        },
+        "environment_id": {
+          "format": "uuid4",
+          "title": "Environment Id",
+          "type": "string"
+        },
+        "error_summaries": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ErrorSummary"
+          },
+          "maxItems": 16,
+          "title": "Error Summaries",
+          "type": "array"
+        },
+        "error_summaries_truncated": {
+          "default": false,
+          "title": "Error Summaries Truncated",
+          "type": "boolean"
+        },
+        "event_id": {
+          "format": "uuid4",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_sequence": {
+          "minimum": 1,
+          "title": "Event Sequence",
+          "type": "integer"
+        },
+        "event_type": {
+          "const": "run_finished",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "occurred_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+          "title": "Occurred At",
+          "type": "string"
+        },
+        "praxist_version": {
+          "maxLength": 32,
+          "minLength": 1,
+          "pattern": "^[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*$",
+          "title": "Praxist Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 2,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "telemetry_run_id": {
+          "format": "uuid4",
+          "title": "Telemetry Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "praxist_version",
+        "consent_notice_version",
+        "event_id",
+        "environment_id",
+        "telemetry_run_id",
+        "event_sequence",
+        "occurred_at",
+        "active_duration_minutes",
+        "duration_capped",
+        "event_type"
+      ],
+      "title": "RunFinishedEvent",
+      "type": "object"
+    },
+    "RunReconciledEvent": {
+      "additionalProperties": false,
+      "description": "Terminal aggregate snapshot reconstructed after an interrupted process.",
+      "properties": {
+        "active_duration_minutes": {
+          "anyOf": [
+            {
+              "maximum": 43200,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Active Duration Minutes"
+        },
+        "consent_notice_version": {
+          "enum": [
+            2,
+            3
+          ],
+          "title": "Consent Notice Version",
+          "type": "integer"
+        },
+        "duration_capped": {
+          "title": "Duration Capped",
+          "type": "boolean"
+        },
+        "environment_id": {
+          "format": "uuid4",
+          "title": "Environment Id",
+          "type": "string"
+        },
+        "error_summaries": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ErrorSummary"
+          },
+          "maxItems": 16,
+          "title": "Error Summaries",
+          "type": "array"
+        },
+        "error_summaries_truncated": {
+          "default": false,
+          "title": "Error Summaries Truncated",
+          "type": "boolean"
+        },
+        "event_id": {
+          "format": "uuid4",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_sequence": {
+          "minimum": 1,
+          "title": "Event Sequence",
+          "type": "integer"
+        },
+        "event_type": {
+          "const": "run_reconciled",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "occurred_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+          "title": "Occurred At",
+          "type": "string"
+        },
+        "praxist_version": {
+          "maxLength": 32,
+          "minLength": 1,
+          "pattern": "^[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*$",
+          "title": "Praxist Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 2,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "telemetry_run_id": {
+          "format": "uuid4",
+          "title": "Telemetry Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "praxist_version",
+        "consent_notice_version",
+        "event_id",
+        "environment_id",
+        "telemetry_run_id",
+        "event_sequence",
+        "occurred_at",
+        "active_duration_minutes",
+        "duration_capped",
+        "event_type"
+      ],
+      "title": "RunReconciledEvent",
+      "type": "object"
+    },
+    "RunStartedEvent": {
+      "additionalProperties": false,
+      "description": "Aggregate snapshot emitted at a Research Run start boundary.",
+      "properties": {
+        "consent_notice_version": {
+          "enum": [
+            2,
+            3
+          ],
+          "title": "Consent Notice Version",
+          "type": "integer"
+        },
+        "environment_id": {
+          "format": "uuid4",
+          "title": "Environment Id",
+          "type": "string"
+        },
+        "error_summaries": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ErrorSummary"
+          },
+          "maxItems": 16,
+          "title": "Error Summaries",
+          "type": "array"
+        },
+        "error_summaries_truncated": {
+          "default": false,
+          "title": "Error Summaries Truncated",
+          "type": "boolean"
+        },
+        "event_id": {
+          "format": "uuid4",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "event_sequence": {
+          "minimum": 1,
+          "title": "Event Sequence",
+          "type": "integer"
+        },
+        "event_type": {
+          "const": "run_started",
+          "title": "Event Type",
+          "type": "string"
+        },
+        "generation_ordinal": {
+          "minimum": 0,
+          "title": "Generation Ordinal",
+          "type": "integer"
+        },
+        "occurred_at": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+          "title": "Occurred At",
+          "type": "string"
+        },
+        "peer_cancelled_count": {
+          "minimum": 0,
+          "title": "Peer Cancelled Count",
+          "type": "integer"
+        },
+        "peer_completed_count": {
+          "minimum": 0,
+          "title": "Peer Completed Count",
+          "type": "integer"
+        },
+        "peer_failed_count": {
+          "minimum": 0,
+          "title": "Peer Failed Count",
+          "type": "integer"
+        },
+        "peer_planned_count": {
+          "minimum": 0,
+          "title": "Peer Planned Count",
+          "type": "integer"
+        },
+        "peer_running_count": {
+          "minimum": 0,
+          "title": "Peer Running Count",
+          "type": "integer"
+        },
+        "peer_unknown_count": {
+          "minimum": 0,
+          "title": "Peer Unknown Count",
+          "type": "integer"
+        },
+        "planned_peer_count": {
+          "minimum": 0,
+          "title": "Planned Peer Count",
+          "type": "integer"
+        },
+        "praxist_version": {
+          "maxLength": 32,
+          "minLength": 1,
+          "pattern": "^[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*$",
+          "title": "Praxist Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": 2,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "telemetry_run_id": {
+          "format": "uuid4",
+          "title": "Telemetry Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "praxist_version",
+        "consent_notice_version",
+        "event_id",
+        "environment_id",
+        "telemetry_run_id",
+        "event_sequence",
+        "occurred_at",
+        "generation_ordinal",
+        "planned_peer_count",
+        "peer_planned_count",
+        "peer_running_count",
+        "peer_completed_count",
+        "peer_cancelled_count",
+        "peer_failed_count",
+        "peer_unknown_count",
+        "event_type"
+      ],
+      "title": "RunStartedEvent",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A bounded request containing only closed-schema lifecycle events.",
+  "properties": {
+    "events": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "generation_finished": "#/$defs/GenerationFinishedEvent",
+            "run_finished": "#/$defs/RunFinishedEvent",
+            "run_reconciled": "#/$defs/RunReconciledEvent",
+            "run_started": "#/$defs/RunStartedEvent"
+          },
+          "propertyName": "event_type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/RunStartedEvent"
+          },
+          {
+            "$ref": "#/$defs/GenerationFinishedEvent"
+          },
+          {
+            "$ref": "#/$defs/RunFinishedEvent"
+          },
+          {
+            "$ref": "#/$defs/RunReconciledEvent"
+          }
+        ]
+      },
+      "maxItems": 50,
+      "minItems": 1,
+      "title": "Events",
+      "type": "array"
+    }
+  },
+  "required": [
+    "events"
+  ],
+  "title": "UsageBatch",
+  "type": "object"
+}

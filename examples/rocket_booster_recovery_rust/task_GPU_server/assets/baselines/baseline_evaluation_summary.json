@@ -1,0 +1,864 @@
+{
+  "actual_evaluation_units": 13312,
+  "changed_modules": [],
+  "complete_eval": true,
+  "confirmed_performance_gate_passed": false,
+  "coverage_ratio": 1.0,
+  "dataset": {
+    "complete_landing_units": 12288,
+    "complete_units": 13312,
+    "historical_formal_overlap": false,
+    "initial_fuel_kg": 7000.0,
+    "initial_mass_kg": 29200.0,
+    "mass_empty_kg": 22200.0,
+    "mode_units": 13312,
+    "roll_units": 1024,
+    "selection_seed_near_hard": 20260821,
+    "selection_seed_nominal": 20260822,
+    "source_bank_hashes": {
+      "hard_ood": "55d3e0054ef5d225b78f6558a4e15a3a908bedb84daabb7cc66b8e6579fd297c",
+      "near_ood": "d35803608dd3dedbbd4db76d9b39aebe37c2eedbdba4ad9ec0dcd94a690d7730",
+      "nominal_unseen": "674d119f8f0cd36c2553f0cc9134ec23886fd00d1a34396d515d957132311a3d"
+    },
+    "source_rows_sha256": "2694073419a116a12c611f8e952cf399b0a2172ea0c93aa8c6bac36ceee9b78c"
+  },
+  "design_dimensions": {
+    "intent": "control",
+    "intervention_surface": "none_baseline_control",
+    "mechanism_family": "analytic_composite_baseline",
+    "novelty_axis": "no_post_contact_damping_credit",
+    "parent_lineage": "frozen_baseline",
+    "semantic_family": "rocket_booster_recovery_v2_powered_first_contact"
+  },
+  "details": {
+    "landing": {
+      "anti_damping_protocol": "Landing rollout terminates for scoring at first leg contact; post-contact spring/damper states contribute zero scored steps and zero success credit.",
+      "by_initial_radius": {
+        "r0_450m": {
+          "first_contact_rate": 1.0,
+          "landing_success_count": 338,
+          "landing_success_rate": 0.4592391304347826,
+          "trajectories": 736
+        },
+        "r1200_1450m": {
+          "first_contact_rate": 1.0,
+          "landing_success_count": 0,
+          "landing_success_rate": 0.0,
+          "trajectories": 2464
+        },
+        "r1450_1651m": {
+          "first_contact_rate": 1.0,
+          "landing_success_count": 0,
+          "landing_success_rate": 0.0,
+          "trajectories": 4608
+        },
+        "r450_900m": {
+          "first_contact_rate": 1.0,
+          "landing_success_count": 157,
+          "landing_success_rate": 0.07238358690640849,
+          "trajectories": 2169
+        },
+        "r900_1200m": {
+          "first_contact_rate": 1.0,
+          "landing_success_count": 0,
+          "landing_success_rate": 0.0,
+          "trajectories": 2311
+        }
+      },
+      "by_source": {
+        "hard_ood": {
+          "com_sink_speed_mps": {
+            "max": 69.2554931640625,
+            "mean": 59.20461441390216,
+            "min": 40.53413772583008,
+            "p50": 61.1323299407959,
+            "p95": 66.46455955505371,
+            "p99": 67.27854537963869
+          },
+          "contact_leg_sink_speed_mps": {
+            "max": 69.26311492919922,
+            "mean": 59.233042472973466,
+            "min": 40.52347946166992,
+            "p50": 61.14483642578125,
+            "p95": 66.47451591491699,
+            "p99": 67.29382057189942
+          },
+          "finite_first_contact": {
+            "count": 4096,
+            "rate": 1.0,
+            "wilson_95_high": 0.9999999999999999,
+            "wilson_95_low": 0.9990630225926348
+          },
+          "first_contact_detected": {
+            "count": 4096,
+            "rate": 1.0,
+            "wilson_95_high": 0.9999999999999999,
+            "wilson_95_low": 0.9990630225926348
+          },
+          "fuel_fraction": {
+            "max": 0.0,
+            "mean": 0.0,
+            "min": 0.0,
+            "p50": 0.0,
+            "p95": 0.0,
+            "p99": 0.0
+          },
+          "fuel_gate_pass": {
+            "count": 0,
+            "rate": 0.0,
+            "wilson_95_high": 0.0009369774073651883,
+            "wilson_95_low": 0.0
+          },
+          "landing_success_pass": {
+            "count": 0,
+            "rate": 0.0,
+            "wilson_95_high": 0.0009369774073651883,
+            "wilson_95_low": 0.0
+          },
+          "lateral_error_m": {
+            "max": 7.823308521086628,
+            "mean": 4.34291295098011,
+            "min": 0.5661083770392017,
+            "p50": 4.37593420225628,
+            "p95": 7.408802467665534,
+            "p99": 7.698922776625388
+          },
+          "lateral_speed_mps": {
+            "max": 1.7931707160293677,
+            "mean": 0.9885394378841769,
+            "min": 0.0069835212868032395,
+            "p50": 1.0577510430901311,
+            "p95": 1.532791925400318,
+            "p99": 1.638400502886578
+          },
+          "single_success_gate_counts": {
+            "first_contact": 4096,
+            "fuel_reserve_gt_2pct": 0,
+            "landing_success_joint": 0,
+            "lateral_le_5m": 2675,
+            "vertical_first_contact_gate": 0
+          },
+          "tilt_rad": {
+            "max": 0.0892847381818305,
+            "mean": 0.04476483128200598,
+            "min": 0.011576047811723302,
+            "p50": 0.030217689841725983,
+            "p95": 0.0843744301773408,
+            "p99": 0.08794514416092714
+          },
+          "total_speed_mps": {
+            "max": 69.26127774268703,
+            "mean": 59.21410707667553,
+            "min": 40.5354214665088,
+            "p50": 61.1326989679671,
+            "p95": 66.47350537783677,
+            "p99": 67.2871754528257
+          },
+          "trajectories": 4096,
+          "vertical_gate_pass": {
+            "count": 0,
+            "rate": 0.0,
+            "wilson_95_high": 0.0009369774073651883,
+            "wilson_95_low": 0.0
+          },
+          "vertical_velocity_mps": {
+            "max": -40.53413772583008,
+            "mean": -59.20461441390216,
+            "min": -69.2554931640625,
+            "p50": -61.1323299407959,
+            "p95": -46.464500427246094,
+            "p99": -43.70116291046143
+          }
+        },
+        "near_ood": {
+          "com_sink_speed_mps": {
+            "max": 70.61572265625,
+            "mean": 28.361840620900693,
+            "min": 0.03079865872859955,
+            "p50": 28.840293884277344,
+            "p95": 65.54064559936523,
+            "p99": 67.55108451843262
+          },
+          "contact_leg_sink_speed_mps": {
+            "max": 70.624267578125,
+            "mean": 28.374485532043764,
+            "min": 0.026463843882083893,
+            "p50": 28.84795379638672,
+            "p95": 65.54012870788574,
+            "p99": 67.55486755371093
+          },
+          "finite_first_contact": {
+            "count": 4096,
+            "rate": 1.0,
+            "wilson_95_high": 0.9999999999999999,
+            "wilson_95_low": 0.9990630225926348
+          },
+          "first_contact_detected": {
+            "count": 4096,
+            "rate": 1.0,
+            "wilson_95_high": 0.9999999999999999,
+            "wilson_95_low": 0.9990630225926348
+          },
+          "fuel_fraction": {
+            "max": 0.22941880580357144,
+            "mean": 0.007162448678697853,
+            "min": 0.0,
+            "p50": 0.0,
+            "p95": 0.05418157087053571,
+            "p99": 0.10306420200892859
+          },
+          "fuel_gate_pass": {
+            "count": 483,
+            "rate": 0.117919921875,
+            "wilson_95_high": 0.12815657071305137,
+            "wilson_95_low": 0.10839927383896353
+          },
+          "landing_success_pass": {
+            "count": 263,
+            "rate": 0.064208984375,
+            "wilson_95_high": 0.07213170580157667,
+            "wilson_95_low": 0.05710291562037003
+          },
+          "lateral_error_m": {
+            "max": 699.3855439935721,
+            "mean": 3.1630205051312528,
+            "min": 0.02052191074723089,
+            "p50": 2.7501362271628285,
+            "p95": 6.564099100285064,
+            "p99": 7.559892735060553
+          },
+          "lateral_speed_mps": {
+            "max": 11.007657092018762,
+            "mean": 0.5530919121997606,
+            "min": 0.0013093695894891481,
+            "p50": 0.5264850945618784,
+            "p95": 1.1666278710435134,
+            "p99": 1.4989051043470123
+          },
+          "single_success_gate_counts": {
+            "first_contact": 4096,
+            "fuel_reserve_gt_2pct": 483,
+            "landing_success_joint": 263,
+            "lateral_le_5m": 3555,
+            "vertical_first_contact_gate": 719
+          },
+          "tilt_rad": {
+            "max": 0.4239071630375516,
+            "mean": 0.024390074298283607,
+            "min": 0.0006042982288508682,
+            "p50": 0.0203172015076815,
+            "p95": 0.06438549945139763,
+            "p99": 0.0836032693870567
+          },
+          "total_speed_mps": {
+            "max": 70.62465910588793,
+            "mean": 28.392964674007853,
+            "min": 0.2704798993457295,
+            "p50": 28.84773921788893,
+            "p95": 65.55210699945584,
+            "p99": 67.55162737475322
+          },
+          "trajectories": 4096,
+          "vertical_gate_pass": {
+            "count": 719,
+            "rate": 0.175537109375,
+            "wilson_95_high": 0.18748996003314014,
+            "wilson_95_low": 0.16419228751294787
+          },
+          "vertical_velocity_mps": {
+            "max": -0.03079865872859955,
+            "mean": -28.361840620900693,
+            "min": -70.61572265625,
+            "p50": -28.840293884277344,
+            "p95": -0.46042389422655106,
+            "p99": -0.25033120959997135
+          }
+        },
+        "nominal_unseen": {
+          "com_sink_speed_mps": {
+            "max": 70.31884002685547,
+            "mean": 29.579146774362016,
+            "min": 0.017435520887374878,
+            "p50": 30.16439914703369,
+            "p95": 65.85064125061035,
+            "p99": 67.54067764282226
+          },
+          "contact_leg_sink_speed_mps": {
+            "max": 70.3306655883789,
+            "mean": 29.59332755190553,
+            "min": 0.02156367152929306,
+            "p50": 30.207416534423828,
+            "p95": 65.86175918579102,
+            "p99": 67.5501594543457
+          },
+          "finite_first_contact": {
+            "count": 4096,
+            "rate": 1.0,
+            "wilson_95_high": 0.9999999999999999,
+            "wilson_95_low": 0.9990630225926348
+          },
+          "first_contact_detected": {
+            "count": 4096,
+            "rate": 1.0,
+            "wilson_95_high": 0.9999999999999999,
+            "wilson_95_low": 0.9990630225926348
+          },
+          "fuel_fraction": {
+            "max": 0.22397265625,
+            "mean": 0.0070366682325090696,
+            "min": 0.0,
+            "p50": 0.0,
+            "p95": 0.05340876116071429,
+            "p99": 0.10228708147321436
+          },
+          "fuel_gate_pass": {
+            "count": 449,
+            "rate": 0.109619140625,
+            "wilson_95_high": 0.11955494467235918,
+            "wilson_95_low": 0.10041489266864519
+          },
+          "landing_success_pass": {
+            "count": 232,
+            "rate": 0.056640625,
+            "wilson_95_high": 0.06414389034798465,
+            "wilson_95_low": 0.04996819508745246
+          },
+          "lateral_error_m": {
+            "max": 46.941504098115274,
+            "mean": 3.1172036600610893,
+            "min": 0.0280021910640534,
+            "p50": 2.78754119542688,
+            "p95": 6.703884853174229,
+            "p99": 7.628450335903515
+          },
+          "lateral_speed_mps": {
+            "max": 32.178841716293086,
+            "mean": 0.5548635896783706,
+            "min": 0.0015178837960310942,
+            "p50": 0.5262012036628656,
+            "p95": 1.2047970807566117,
+            "p99": 1.5070155090259163
+          },
+          "single_success_gate_counts": {
+            "first_contact": 4096,
+            "fuel_reserve_gt_2pct": 449,
+            "landing_success_joint": 232,
+            "lateral_le_5m": 3486,
+            "vertical_first_contact_gate": 684
+          },
+          "tilt_rad": {
+            "max": 0.4613533261931163,
+            "mean": 0.025566355870266105,
+            "min": 0.0006523873524304097,
+            "p50": 0.02070605942959816,
+            "p95": 0.06597905993066401,
+            "p99": 0.08266327777977221
+          },
+          "total_speed_mps": {
+            "max": 75.82126445861611,
+            "mean": 29.61143301706894,
+            "min": 0.28013529550973726,
+            "p50": 30.173562659407068,
+            "p95": 65.85331683163025,
+            "p99": 67.54174600873912
+          },
+          "trajectories": 4096,
+          "vertical_gate_pass": {
+            "count": 684,
+            "rate": 0.1669921875,
+            "wilson_95_high": 0.17872508154824557,
+            "wilson_95_low": 0.15588333504533158
+          },
+          "vertical_velocity_mps": {
+            "max": -0.017435520887374878,
+            "mean": -29.579146774362016,
+            "min": -70.31884002685547,
+            "p50": -30.16439914703369,
+            "p95": -0.4984656125307083,
+            "p99": -0.2614557236433027
+          }
+        }
+      },
+      "contact_observability_limit": "First leg contact is observable from frozen gear geometry. Post-contact dwell, bounce height, leg loads, slip, and overturn remain unscored.",
+      "endpoint_previous_omega_available": true,
+      "max_abs_normalized_action_by_channel": {
+        "gimbal_y": 0.8591065406799316,
+        "gimbal_z": 0.8591065406799316,
+        "grid_roll": 0.0,
+        "grid_y": 1.0,
+        "grid_z": 1.0,
+        "rcs_pitch": 0.0,
+        "rcs_roll": 1.540520933041023e-9,
+        "rcs_yaw": 0.0,
+        "throttle": 0.9600000381469727
+      },
+      "overall": {
+        "com_sink_speed_mps": {
+          "max": 70.61572265625,
+          "mean": 39.04853393638829,
+          "min": 0.017435520887374878,
+          "p50": 43.66859436035156,
+          "p95": 66.39284553527833,
+          "p99": 67.39962387084961
+        },
+        "contact_leg_sink_speed_mps": {
+          "max": 70.624267578125,
+          "mean": 39.06695185230759,
+          "min": 0.02156367152929306,
+          "p50": 43.66474533081055,
+          "p95": 66.39873313903809,
+          "p99": 67.39966537475586
+        },
+        "finite_first_contact": {
+          "count": 12288,
+          "rate": 1.0,
+          "wilson_95_high": 1.0,
+          "wilson_95_low": 0.9996874789807888
+        },
+        "first_contact_detected": {
+          "count": 12288,
+          "rate": 1.0,
+          "wilson_95_high": 1.0,
+          "wilson_95_low": 0.9996874789807888
+        },
+        "fuel_fraction": {
+          "max": 0.22941880580357144,
+          "mean": 0.00473303897040231,
+          "min": 0.0,
+          "p50": 0.0,
+          "p95": 0.03763297991071427,
+          "p99": 0.09720585937499975
+        },
+        "fuel_gate_pass": {
+          "count": 932,
+          "rate": 0.07584635416666667,
+          "wilson_95_high": 0.08066114572638332,
+          "wilson_95_low": 0.07129667646634606
+        },
+        "landing_success_pass": {
+          "count": 495,
+          "rate": 0.040283203125,
+          "wilson_95_high": 0.043905789326106996,
+          "wilson_95_low": 0.036947959247708835
+        },
+        "lateral_error_m": {
+          "max": 699.3855439935721,
+          "mean": 3.5410457053908027,
+          "min": 0.02052191074723089,
+          "p50": 3.071886026739678,
+          "p95": 7.092804141764914,
+          "p99": 7.670340813475313
+        },
+        "lateral_speed_mps": {
+          "max": 32.178841716293086,
+          "mean": 0.6988316465874361,
+          "min": 0.0013093695894891481,
+          "p50": 0.6570883294778981,
+          "p95": 1.4059240893123746,
+          "p99": 1.5947052487672593
+        },
+        "single_success_gate_counts": {
+          "first_contact": 12288,
+          "fuel_reserve_gt_2pct": 932,
+          "landing_success_joint": 495,
+          "lateral_le_5m": 9716,
+          "vertical_first_contact_gate": 1403
+        },
+        "tilt_rad": {
+          "max": 0.4613533261931163,
+          "mean": 0.03157375381685184,
+          "min": 0.0006042982288508682,
+          "p50": 0.02364708963116713,
+          "p95": 0.07959802391115213,
+          "p99": 0.08667532604059303
+        },
+        "total_speed_mps": {
+          "max": 75.82126445861611,
+          "mean": 39.0728349225843,
+          "min": 0.2704798993457295,
+          "p50": 43.668733557692505,
+          "p95": 66.3974455592692,
+          "p99": 67.4094369330649
+        },
+        "trajectories": 12288,
+        "vertical_gate_pass": {
+          "count": 1403,
+          "rate": 0.11417643229166667,
+          "wilson_95_high": 0.11992044066928535,
+          "wilson_95_low": 0.10867357986327987
+        },
+        "vertical_velocity_mps": {
+          "max": -0.017435520887374878,
+          "mean": -39.04853393638829,
+          "min": -70.61572265625,
+          "p50": -43.66859436035156,
+          "p95": -0.5594837814569478,
+          "p99": -0.2876344370841987
+        }
+      },
+      "source_rows_sha256": "2694073419a116a12c611f8e952cf399b0a2172ea0c93aa8c6bac36ceee9b78c",
+      "success_definition": {
+        "endpoint": "interpolated first landing-leg contact before spring/damper response",
+        "name": "landing_success",
+        "only_success_standard": true,
+        "thresholds": {
+          "com_sink_speed_max_mps": 1.0,
+          "contact_leg_sink_speed_max_mps": 1.0,
+          "fuel_reserve_min_fraction": 0.02,
+          "lateral_error_max_m": 5.0,
+          "lateral_speed_max_mps": 0.3,
+          "pitch_yaw_rate_max_radps": 0.03,
+          "roll_rate_max_radps": 0.02,
+          "tilt_max_deg": 1.5
+        }
+      }
+    },
+    "roll": {
+      "initial_roll_rates_radps": [
+        -0.8,
+        -0.6,
+        -0.4,
+        -0.2,
+        0.2,
+        0.4,
+        0.6,
+        0.8
+      ],
+      "settling_definition": "time of last sample outside |omega_x|<0.02 rad/s",
+      "stable_count": 1024,
+      "trajectories": 1024
+    }
+  },
+  "effective_config": {
+    "actuator_margin_fraction": 0.8,
+    "attitude_rate_p0_radps": 0.10471975511965977,
+    "attitude_rate_p1_radps": 0.06981317007977318,
+    "attitude_rate_p2_radps": 0.03490658503988659,
+    "attitude_wn_py_p0": 0.55,
+    "attitude_wn_py_p1": 0.48,
+    "attitude_wn_py_p2": 0.35,
+    "attitude_wn_roll_high": 0.7,
+    "attitude_wn_roll_low": 0.45,
+    "attitude_zeta_py_p0": 0.9,
+    "attitude_zeta_py_p1": 0.9,
+    "attitude_zeta_py_p2": 1.0,
+    "attitude_zeta_roll": 1.0,
+    "body_cd": 0.6,
+    "body_reference_area_m2": 10.521,
+    "body_rho_kgpm3": 1.05,
+    "candidate_fuel_weight": 1.0,
+    "candidate_jerk_weight": 5000.0,
+    "candidate_time_weight": 25.0,
+    "candidate_violation_weight": 1000000.0,
+    "capture_lateral_horizon_floor_s": 18.0,
+    "capture_layer_height_m": 275.0,
+    "capture_release_radius_m": 10.0,
+    "capture_release_vlat_mps": 1.0,
+    "capture_tgo_max_s": 25.0,
+    "capture_tgo_min_s": 6.0,
+    "capture_trigger_height_m": 450.0,
+    "capture_trigger_radius_m": 100.0,
+    "dt": 0.1,
+    "emergency_brake_efficiency": 0.85,
+    "emergency_distance_factor": 1.5,
+    "emergency_height_buffer_m": 50.0,
+    "engine_arm_m": 15.0,
+    "flare_entry_height_m": 90.0,
+    "fuel_reserve_fraction": 0.02,
+    "gimbal_absolute_rad": 0.0873,
+    "gimbal_normal_rad": 0.075,
+    "gimbal_rate_rad_per_step": 0.015,
+    "gravity": 9.81,
+    "grid_absolute_rad": 0.35,
+    "grid_area_total_m2": 3.0,
+    "grid_blend_q_full_pa": 800.0,
+    "grid_blend_q_off_pa": 150.0,
+    "grid_control_cl": 1.6,
+    "grid_normal_rad": 0.25,
+    "grid_rate_rad_per_step": 0.05,
+    "grid_station_m": 0.5,
+    "grid_torque_fraction": 0.25,
+    "guidance_accel_slew_mps3": 3.0,
+    "guidance_period_steps": 2,
+    "initial_fuel_kg": 7000.0,
+    "isp_s": 282.0,
+    "mass_empty_kg": 22200.0,
+    "normal_waypoint_height_m": 300.0,
+    "normal_waypoint_vx_mps": -15.0,
+    "p0_capture_dwell_steps": 10,
+    "p0_direct_ground_on": 0.0,
+    "p0_direct_ground_tgo_s": 30.0,
+    "p0_direct_lateral_tgo_floor_s": 12.0,
+    "p0_lateral_horizon_floor_s": 28.0,
+    "p0_tgo_max_s": 40.0,
+    "p0_tgo_min_s": 8.0,
+    "p0_tilt_limit_rad": 0.4363323129985824,
+    "p1_capture_hold_vx_mps": -2.0,
+    "p1_capture_hold_wn": 0.45,
+    "p1_capture_hold_zeta": 1.4,
+    "p1_max_capture_hold_steps": 0,
+    "p1_release_radius_m": 1.0,
+    "p1_release_vlat_mps": 0.2,
+    "p1_tilt_limit_rad": 0.20943951023931953,
+    "p2_tilt_high_rad": 0.08726646259971647,
+    "p2_tilt_low_rad": 0.026179938779914945,
+    "phase_dwell_steps": 10,
+    "preview_nodes": 16,
+    "rcs_base_torque_nm": 180000.0,
+    "rcs_boost_radius_m": 700.0,
+    "rcs_far_scale": 3.0,
+    "rcs_near_scale": 1.0,
+    "rcs_roll_emergency_cap_nm": 60000.0,
+    "rcs_roll_normal_cap_nm": 30000.0,
+    "rcs_roll_rate_nm_per_step": 10000.0,
+    "rcs_schedule_width_m": 140.0,
+    "terminal_entry_height_m": 350.0,
+    "terminal_entry_radius_m": 100.0,
+    "terminal_entry_roll_rate_radps": 0.02,
+    "terminal_entry_tilt_rad": 0.17453292519943295,
+    "terminal_entry_vlat_mps": 8.0,
+    "terminal_flare_accel_mps2": 2.0,
+    "terminal_h_leg_m": 3.1,
+    "terminal_lateral_schedule_high_m": 80.0,
+    "terminal_lateral_schedule_low_m": 20.0,
+    "terminal_lateral_wn_high": 0.22,
+    "terminal_lateral_wn_low": 0.4,
+    "terminal_lateral_zeta": 0.9,
+    "terminal_v_touch_mps": 0.6,
+    "terminal_vertical_gain": 0.8,
+    "tgo_candidates": 48,
+    "tgo_continuity_weight": 0.0,
+    "throttle_normal_max": 0.98,
+    "throttle_normal_min": 0.02,
+    "throttle_rate_per_step": 0.08,
+    "thrust_max_n": 845000.0,
+    "vehicle_length_m": 40.0,
+    "vehicle_radius_m": 1.83,
+    "version": "rocket-booster-recovery-rust-v2-first-contact-7000kg"
+  },
+  "effective_config_complete": true,
+  "effective_config_digest": "07a38fa2db0418d8c37695812b4490ed973d6059b66f935ed10b7f832df6f44c",
+  "effective_config_schema": "serde_json::from_value(controller_config.json):rust:v2_extensible",
+  "effort_ratio": 1.0,
+  "eval_stage": "complete",
+  "evaluation_units_completed": 13312,
+  "evaluation_units_required": 13312,
+  "evidence_stage": "complete",
+  "execution": {
+    "available_parallelism": 168,
+    "backend": "cpu",
+    "cpu_model": "Intel(R) Xeon(R) Platinum 8457C",
+    "elapsed_seconds": 1.996247623,
+    "gpu_required": false,
+    "harness_crate_version": "0.3.0",
+    "peak_resident_memory_kb": 12892,
+    "resident_memory_kb": 9904,
+    "resource_profile": "cpu_evaluation",
+    "runtime_language": "Rust",
+    "scheduler_managed": false,
+    "stage_seconds": [
+      1.867052116,
+      0.10001874
+    ],
+    "target_arch": "x86_64",
+    "target_os": "linux",
+    "threads": 16,
+    "trajectory_parallelism": "Rayon indexed parallel iterator",
+    "unix_time_seconds": 1787635311
+  },
+  "extra": {
+    "design_dimensions": {
+      "intent": "control",
+      "intervention_surface": "none_baseline_control",
+      "mechanism_family": "analytic_composite_baseline",
+      "novelty_axis": "no_post_contact_damping_credit",
+      "parent_lineage": "frozen_baseline",
+      "semantic_family": "rocket_booster_recovery_v2_powered_first_contact"
+    },
+    "effective_config_digest": "07a38fa2db0418d8c37695812b4490ed973d6059b66f935ed10b7f832df6f44c",
+    "evaluation_summary": "assets/baselines/baseline_evaluation_summary.json",
+    "evidence_stage": "complete",
+    "frontier_lane": "performance",
+    "promotion_lane": "performance"
+  },
+  "frontier_lane": "performance",
+  "method_class": "deterministic_classical_control",
+  "metrics": {
+    "close_eligible": true,
+    "complete_eval": true,
+    "confirmed_performance_gate_passed": false,
+    "contract_lock_passed": true,
+    "coverage_ratio": 1.0,
+    "effort_ratio": 1.0,
+    "evaluation_units_completed": 13312,
+    "evaluation_units_required": 13312,
+    "evaluator_wall_seconds": 1.996247623,
+    "first_contact_abs_roll_rate_p95_radps": 2.4295922999156836e-11,
+    "first_contact_count": 12288,
+    "first_contact_lateral_error_p95_m": 7.092804141764914,
+    "first_contact_lateral_speed_p95_mps": 1.4059240893123746,
+    "first_contact_leg_sink_speed_mean_mps": 39.06695185230759,
+    "first_contact_leg_sink_speed_p95_mps": 66.39873313903809,
+    "first_contact_pitch_yaw_rate_p95_radps": 0.01276141857336949,
+    "first_contact_rate": 1.0,
+    "first_contact_sink_speed_max_mps": 70.61572265625,
+    "first_contact_sink_speed_mean_mps": 39.04853393638829,
+    "first_contact_sink_speed_p50_mps": 43.66859436035156,
+    "first_contact_sink_speed_p95_mps": 66.39284553527833,
+    "first_contact_sink_speed_p99_mps": 67.39962387084961,
+    "first_contact_tilt_p95_deg": 4.560630827690427,
+    "first_contact_time_p95_s": 77.10000000000001,
+    "first_contact_total_speed_p95_mps": 66.3974455592692,
+    "forbidden_action_max_abs": 0.0,
+    "fuel_depletion_rate": 0.8863932291666666,
+    "fuel_gate_pass_rate": 0.07584635416666667,
+    "fuel_gate_shortfall_rate": 0.9241536458333334,
+    "fuel_reserve_margin_above_2pct_p05_fraction": 0.0,
+    "fuel_reserve_mean_fraction": 0.00473303897040231,
+    "fuel_reserve_p05_fraction": 0.0,
+    "gear_damping_credit_rate": 0.0,
+    "gimbal_saturation_rate": 0.00009502135500231766,
+    "gimbal_total_variation_mean_rad": 0.4903299583917639,
+    "grid_saturation_rate": 0.5115837315062484,
+    "grid_total_variation_mean_rad": 7.941337889797675,
+    "hard_ood_first_contact_rate": 1.0,
+    "hard_ood_first_contact_sink_speed_p95_mps": 66.46455955505371,
+    "hard_ood_landing_success_rate": 0.0,
+    "hard_ood_success_nonzero": false,
+    "is_smoke_eval": false,
+    "landing_success_count": 495,
+    "landing_success_min_fuel_reserve_fraction": 0.020097935267857144,
+    "landing_success_nonzero": true,
+    "landing_success_rate": 0.040283203125,
+    "landing_success_wilson_95_high": 0.043905789326106996,
+    "landing_success_wilson_95_low": 0.036947959247708835,
+    "late_after_generation_boundary": false,
+    "mode_units_expected": 13312,
+    "near_ood_first_contact_rate": 1.0,
+    "near_ood_first_contact_sink_speed_p95_mps": 65.54064559936523,
+    "near_ood_landing_success_rate": 0.064208984375,
+    "nominal_unseen_first_contact_rate": 1.0,
+    "nominal_unseen_first_contact_sink_speed_p95_mps": 65.85064125061035,
+    "nominal_unseen_landing_success_rate": 0.056640625,
+    "nonfinite_trajectory_rate": 0.0,
+    "parent_authorized": true,
+    "partial": false,
+    "plant_lateral_rcs_max_nm": 0.0,
+    "post_contact_scored_steps": 0,
+    "promotion_eligible": true,
+    "protocol_integrity_failed": false,
+    "protocol_integrity_passed": true,
+    "radius_strata_gate_nonzero": false,
+    "rcs_roll_cap_rate": 0.0,
+    "research_independence_attested": true,
+    "roll_forbidden_action_max_abs": 0.0,
+    "roll_nonfinite_rate": 0.0,
+    "roll_peak_rate_p95_radps": 0.800000011920929,
+    "roll_pitch_yaw_coupling_p95_radps": 0.2978627115488052,
+    "roll_rcs_switches_mean": 0.0,
+    "roll_rcs_total_variation_mean_nm": 47474.216676712036,
+    "roll_settling_time_p95_s": 2.5,
+    "roll_stable_rate": 1.0,
+    "scored_complete": true,
+    "scout_only": false,
+    "suspect_leakage": false,
+    "suspect_protocol": false,
+    "throttle_saturation_rate": 0.0005516088868115981,
+    "throttle_total_variation_mean": 1.7077898834929026,
+    "unsafe_first_contact_rate": 0.8858235677083334,
+    "validation_only": false,
+    "vertical_first_contact_gate_pass_rate": 0.11417643229166667,
+    "worst_radius_bin_landing_success_rate": 0.0
+  },
+  "plant": {
+    "attested_hashes": {
+      "config/controller.json": "9aad17d00c3c29081600081ea0a9bd4a0dbb0a0217ea68fd0c42c3762294f5e8",
+      "data/complete_source_rows_le_i32.bin": "4f7ab2fcdefdf7adfcb6f9a4528e9eb53019a4323e0a606f68e5ba98505b80bc",
+      "data/development_ood_2048.npz": "00539ee4e538fab8a65e82ae737289e5b42aa9dfae70da9da1cec5e7c8871f94",
+      "data/source_banks/hard_ood_fast_outer_annulus_40960.npz": "55d3e0054ef5d225b78f6558a4e15a3a908bedb84daabb7cc66b8e6579fd297c",
+      "data/source_banks/near_ood_easy_velocity_40960.npz": "d35803608dd3dedbbd4db76d9b39aebe37c2eedbdba4ad9ec0dcd94a690d7730",
+      "data/source_banks/nominal_unseen_40960.npz": "674d119f8f0cd36c2553f0cc9134ec23886fd00d1a34396d515d957132311a3d",
+      "src/dataset.rs": "cbd194c43da63343897cfa210b9acc5c9503eb4f1cd73e52ce0456730583d000",
+      "src/math.rs": "5f783c02a7d6a03d6c701e0b849b11f60b64f9a988cc3f83a17b4553f2a67e1c",
+      "src/metrics.rs": "c4e668d1280461d3fefb12ecc6e4d71d84f6cecaf72f547ec968afbe2366228d",
+      "src/plant.rs": "5e1dadfe048339b02f0cf4a5a587d57b2ee2e281decc92c923b9f0e0495b2dce"
+    },
+    "dt": 0.10000000149011612,
+    "implementation": "Rust f32 implementation of the frozen C05 6DoF equations",
+    "integrator": "rk4",
+    "landing_scoring_endpoint": "interpolated_first_leg_contact",
+    "max_steps": 900,
+    "post_contact_scored_steps": 0,
+    "protocol_fuel_scale": 1.0,
+    "protocol_initial_mass_override_kg": 29200.0,
+    "substeps": 1
+  },
+  "promotion_eligible": true,
+  "promotion_lane": "performance",
+  "protocol": "rocket_booster_recovery_first_contact_7000kg_validation_v2",
+  "protocol_integrity": {
+    "candidate_static_scan": {
+      "config_sha256": "9aad17d00c3c29081600081ea0a9bd4a0dbb0a0217ea68fd0c42c3762294f5e8",
+      "controller_sha256": "ac46d0de1d29a2be9f02a0ef5e140aeddffdc83950eeed40223519dd3a53e293",
+      "forbidden_runtime_access_detected": false,
+      "manifest_sha256": "2051a92f1471f6284e06f8f2fa7650309731d394efe1005450c683a410a5f268",
+      "neural_or_rl_dependencies_detected": false,
+      "research_independence_attested": true,
+      "rust_files": [
+        "controller.rs"
+      ],
+      "rust_source_bytes": 21001,
+      "rust_syntax_parsed": true,
+      "source_tree_sha256": "b373e63721eb1ab98961b2ccd9803dab7b82d07a553c0b5c5a7523782e57cca5"
+    },
+    "contract_lock_passed": true,
+    "forbidden_learning_methods_detected": false,
+    "frozen_assets_attested": true,
+    "frozen_audit_limits": {
+      "dt": 0.1,
+      "gimbal_normal_rad": 0.075,
+      "grid_normal_rad": 0.25,
+      "rcs_roll_emergency_cap_nm": 60000.0,
+      "rcs_roll_normal_cap_nm": 30000.0,
+      "throttle_normal_max": 0.98,
+      "throttle_normal_min": 0.02
+    },
+    "outcome_dependent_selection": false,
+    "passed": true,
+    "post_contact_damping_credit_forbidden": true,
+    "research_independence_attested": true,
+    "single_success_standard": true,
+    "suspect_leakage": false
+  },
+  "protocol_version": 2,
+  "reference_evaluation_units": 13312,
+  "research_independence": {
+    "copied_or_translated_prior_solution": false,
+    "external_controller_implementation_accessed": false,
+    "historical_performance_results_used": false,
+    "prior_run_artifacts_accessed": false
+  },
+  "research_independence_attested": true,
+  "result_status": "scored_complete",
+  "schema_version": 1,
+  "scored_complete": true,
+  "success_definition": {
+    "endpoint": "interpolated_first_landing_leg_contact",
+    "name": "landing_success",
+    "only_success_standard": true,
+    "post_contact_damping_credit": false,
+    "thresholds": {
+      "com_sink_speed_max_mps": 1.0,
+      "contact_leg_sink_speed_max_mps": 1.0,
+      "fuel_reserve_min_fraction": 0.02,
+      "lateral_error_max_m": 5.0,
+      "lateral_speed_max_mps": 0.3,
+      "pitch_yaw_rate_max_radps": 0.03,
+      "roll_rate_max_radps": 0.02,
+      "tilt_max_deg": 1.5
+    }
+  },
+  "tier": "complete",
+  "variant_id": "rocket_booster_recovery_rust_v2_first_contact_7000kg_baseline",
+  "variant_name": "Rocket Booster Recovery (Rust) v2 powered-first-contact 7000 kg baseline"
+}

@@ -1,0 +1,65 @@
+name: Bug report
+description: Report a reproducible Praxist defect.
+title: "[Bug]: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, private task content, or complete run logs.
+        Report security vulnerabilities privately to praxist@sapient.inc instead.
+  - type: input
+    id: version
+    attributes:
+      label: Praxist version or commit
+      placeholder: "praxist 0.3.0 or commit SHA"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operator environment
+      description: Operating system, architecture, Python version, and installation method.
+    validations:
+      required: true
+  - type: input
+    id: runtime
+    attributes:
+      label: Agent runtime and provider route
+      description: Name the route, but do not include keys or saved login material.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide the smallest commands and task-neutral fixture that reproduce the defect.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include sanitized errors or short logs only.
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Note regressions, workarounds, or affected modules if known.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Submission checks
+      options:
+        - label: I removed credentials, personal data, private task content, and unrelated logs.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

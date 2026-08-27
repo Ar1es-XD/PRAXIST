@@ -1,0 +1,4 @@
+interface:
+  display_name: "Praxist Diagnostic"
+  short_description: "Read-only Praxist run health, artifact, diversity, and performance diagnosis"
+  default_prompt: "Use $praxist-diagnostic to inspect the current Praxist run health, research-loop completeness, closing-policy maturity alignment, artifact consistency, planned-versus-realized diversity HHI, exact-result alias capacity, canonical peer attribution, hardware load, runtime session and cached/uncached token usage, performance ceiling, risks, and optional A/B/C human-readable reports."

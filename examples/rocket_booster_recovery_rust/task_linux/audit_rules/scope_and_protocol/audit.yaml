@@ -1,0 +1,82 @@
+schema_version: 1
+name: rocket_booster_recovery_scope_and_protocol
+kind: task_audit
+version: 3.2.0
+protocol_version: 2
+stability: frozen
+mode: declarative
+description: Blocking classical-control scope, channel-lock, and evidence rules.
+compatibility:
+  praxist_core: ">=0.3.0,<1.0"
+dependencies: []
+capabilities:
+  - audit.scope_boundary
+  - audit.evidence_maturity
+  - audit.control_contract
+  - audit.research_independence
+audit:
+  checks:
+    - id: immutable_boundary
+      severity: blocking
+      criteria:
+        - Researchers may edit only candidate controller.rs, controller_config.json, variant.json, and candidate-local Rust modules.
+        - Plant, integrator, contact model, evaluator, data banks, task harness, Cargo manifests, Praxist core, and generic plugins are immutable.
+    - id: classical_methods_only
+      severity: blocking
+      criteria:
+        - Neural networks, reinforcement learning, learned policies, learned residuals, and online learning are forbidden.
+        - Every promoted method must be finite-dimensional, deterministic, auditable classical control or optimization.
+    - id: research_independence
+      severity: blocking
+      criteria:
+        - Only the frozen Rust baseline/task assets and evidence produced after the current run start boundary may inform candidate evolution.
+        - Earlier runs, peer transcripts/workspaces, packaged champions, external controller implementations/configurations, historical scores, Git-history recovery, sibling checkouts, and translated or replayed prior solutions are forbidden.
+        - Every candidate must carry the four-field clean research_independence attestation, and every accepted evaluator summary must report research_independence_attested=true and suspect_leakage=false.
+        - PI and Chair must reject a candidate and its descendants when session evidence contradicts its attestation; self-attestation cannot override observed forbidden access.
+    - id: actuator_channels
+      severity: blocking
+      criteria:
+        - RCS_x may command body-axis roll torque only.
+        - RCS_y, RCS_z, and grid_roll must remain bit-exact +0.0 at both boundaries.
+        - Pitch and yaw may use only gimbal_y/z and grid_y/z.
+    - id: mature_evidence
+      severity: blocking
+      criteria:
+        - Only complete 13312-unit evidence with effort_ratio=coverage_ratio=1.0 may mature, parent, or satisfy normal close.
+        - Complete parent evidence must preserve evaluator source lane performance; peers may not relabel it confirmed or incubator.
+        - Development, canary, roll-only, late, suspect, failed, and partial results cannot become parents.
+    - id: single_first_contact_success
+      severity: blocking
+      criteria:
+        - A single landing-success predicate, landing_success_rate, is used for all source, hard-OOD, and radius-bin rates.
+        - Initial fuel is fixed at 7000 kg and success requires remaining main fuel strictly greater than 2 percent.
+        - Landing scoring ends at interpolated first leg contact with COM and lowest-contact-leg downward speed no greater than 1 m/s and lateral error no greater than 5 m.
+    - id: no_gear_damping_landing_credit
+      severity: blocking
+      criteria:
+        - Post-contact spring or damper response contributes zero scored steps and zero landing credit.
+        - Deliberate engine-cut or under-supported gear-sink/drop control whose safety depends on damper arrest is forbidden.
+        - A coast segment is admissible only when powered braking reaches the first-contact speed gate before any leg touches.
+    - id: observability
+      severity: warning
+      criteria:
+        - Do not claim post-contact dwell, bounce, leg load, slip, or overturn metrics as landing evidence; they are intentionally unscored.
+    - id: managed_cpu_execution
+      severity: blocking
+      criteria:
+        - Every formal evaluation must use the central scheduler cpu_evaluation profile.
+        - The evaluator uses Rust and CPU execution; candidates may not add dependencies, GPU backends, Python/JAX helpers, or subprocess fan-out.
+        - Ad-hoc small-sample diagnostics cannot be promoted as complete evaluator evidence.
+    - id: rust_candidate_isolation
+      severity: blocking
+      criteria:
+        - Candidate Rust must pass frozen syntax/static inspection and isolated compilation before evaluation.
+        - Unsafe code, custom-path or escaping modules, dynamic include, file/network/process access, evaluator/data access, and learning frameworks are forbidden.
+        - The generated runner exposes only the frozen state, math, controller-output, and configuration interface.
+    - id: result_ownership
+      severity: blocking
+      criteria:
+        - Every scheduled evaluator command must use the exact --output-dir option spelling recognized by Praxist ownership parsing.
+        - Every peer, variant, and protocol stage must write to a unique results/gen_<N>/<peer_id>/<variant_id>/<mode> directory.
+        - Scheduler submissions must set cwd to the immutable task root and must never use the run-wide results directory as cwd.
+assets: []

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "format": "little-endian signed i32",
+  "groups": [
+    "nominal_unseen",
+    "near_ood",
+    "hard_ood"
+  ],
+  "rows_per_group": 4096,
+  "selection_algorithm": {
+    "nominal": "NumPy Generator(PCG64), seed 20260822, permutation(40960)[:4096]",
+    "near_ood": "shared NumPy Generator(PCG64), seed 20260821, first permutation(40960)[9216:13312]",
+    "hard_ood": "same generator, second permutation(40960)[9216:13312]"
+  },
+  "binary_sha256": "4f7ab2fcdefdf7adfcb6f9a4528e9eb53019a4323e0a606f68e5ba98505b80bc",
+  "canonical_rows_sha256": "2694073419a116a12c611f8e952cf399b0a2172ea0c93aa8c6bac36ceee9b78c"
+}

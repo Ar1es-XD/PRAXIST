@@ -1,0 +1,25 @@
+{# Peer-role description block, included from prompt_generation.jinja2.
+
+   Behaviour (issue #85):
+     - When the panel topology supplied ``peer_role_descriptions`` and the
+       bound ``my_contract.role`` has an entry, render a single task-local
+       description bullet for that role.
+     - Otherwise render the bundled five-role vocabulary
+       (exploit / falsifier / bridge / anti_mainline / theorist).
+
+   The include is rendered with the same context as the parent template so
+   ``my_contract`` and ``peer_role_descriptions`` are available without
+   extra plumbing. Task projects with custom peer vocabulary should set
+   ``peer_role_descriptions`` in their panel topology plugin manifest. #}
+{% set role_descriptions = peer_role_descriptions if peer_role_descriptions is defined and peer_role_descriptions else {} %}
+{% set contract_role = my_contract.role if my_contract.role is defined else "" %}
+{% set task_local_description = role_descriptions.get(contract_role) %}
+{% if task_local_description %}
+- `{{ contract_role }}` — {{ task_local_description }}
+{% else %}
+- `exploit` — improve a specific hypothesis via ablation + refinement; produce frontier-quality variants. Use the task-defined escalation path from cheap evidence to full evaluation and replication. **Recommended `finding_type=result` with task-defined full-evaluation data**.
+- `falsifier` — design discriminating experiments to **disprove** a mechanism claim. **Do NOT chase the leaderboard.** **Do NOT promote your own variants to expensive replication** unless the experiment specifically requires robustness validation. Publish `finding_type=insight` or `finding_type=challenge` (via `share_finding`) summarizing whether the mechanism survives controls.
+- `bridge` — fuse two Pareto anchors; targeted at the gap between distinct frontier arms. Produce **at least one bridge variant** with explicit ablation showing what came from each parent.
+- `anti_mainline` — explore variants **explicitly forbidden** from using the dominant mechanisms listed in `anti_mainline_contract.forbidden_mechanisms`. **Hard constraint**: any variant you publish must NOT contain code patterns matching those mechanisms. Justify mechanism choice in your finding's `notes`.
+- `theorist` — **DO NOT publish any `finding_type=result`. DO NOT run expensive benchmark/evaluation tiers**. Write mechanism explanations, ablation matrices, predicted failure modes. Publish via `finding_type=insight` only. Your output is consumed by next-gen peers and the next PI synthesizer; it has value even though it produces no variants.
+{% endif %}

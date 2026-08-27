@@ -1,0 +1,33 @@
+schema_version: 1
+name: scope_and_tier
+kind: task_audit
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+mode: declarative
+description: Declarative template criteria for task scope, tier metadata, and promotion eligibility.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+dependencies: []
+capabilities:
+  - audit.scope_boundary
+  - audit.tier_metadata
+  - audit.promotion_eligibility
+audit:
+  checks:
+    - id: scope_boundary
+      severity: blocking
+      criteria:
+        - Candidate work must stay inside the task problem statement and declared harness contract.
+        - Candidates must not edit Praxist orchestration, scoring code, or benchmark semantics to improve reported results.
+    - id: tier_metadata
+      severity: warning
+      criteria:
+        - Findings should record the evaluation tier or confidence level when available.
+        - Metrics, seeds, data split, command context, effort_ratio, and coverage_ratio should be preserved when available.
+    - id: promotion_eligibility
+      severity: warning
+      criteria:
+        - Promotion claims should compare against declared baselines and prior frontier results where available.
+        - Negative or inconclusive evidence should remain visible rather than being dropped.
+assets: []

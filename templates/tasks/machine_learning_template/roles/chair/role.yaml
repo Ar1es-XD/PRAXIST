@@ -1,0 +1,29 @@
+schema_version: 1
+name: ml_chair
+kind: role
+version: 0.1.0
+protocol_version: 1
+stability: template
+description: ML Chair role for merging PI memos into peer contracts.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - role.skill
+  - chair.agenda
+role:
+  role_id: chair
+  legacy_role_id: chair
+  display_name: ML Chair
+  role_kind: chair
+  default_model_profile_ref: strong_reasoner
+  output_schema_ref: core:research_agenda.v1
+  tool_scope:
+    - filesystem.read
+    - memory_tools.panel_read
+    - frontier_tools.panel_read
+    - finding_graph_query.panel_read
+code: []
+assets:
+  - skill.md

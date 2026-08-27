@@ -1,0 +1,71 @@
+{
+  "schema": "rocket_booster_recovery_rust.baseline_remeasurement.v2",
+  "purpose": "Complete Rust baseline measurement for the independent fair-evolution Praxist task harness.",
+  "measured_utc_date": "2026-08-25",
+  "measurement_platform": {
+    "host_class": "cpu_server",
+    "cpu_model": "Intel(R) Xeon(R) Platinum 8457C",
+    "logical_cpus_visible": 168,
+    "trajectory_workers": 16,
+    "runtime_language": "Rust",
+    "backend": "cpu",
+    "gpu_required": false,
+    "venv_required": false,
+    "other_platforms_measured": false
+  },
+  "protocol": {
+    "name": "rocket_booster_recovery_first_contact_7000kg_validation_v2",
+    "mode": "complete",
+    "landing_units": 12288,
+    "roll_units": 1024,
+    "total_units": 13312,
+    "initial_fuel_kg": 7000.0,
+    "success_metric": "landing_success_rate",
+    "only_success_standard": true,
+    "post_contact_damping_credit": false
+  },
+  "measured_metrics": {
+    "landing_success_count": 495,
+    "landing_success_rate": 0.040283203125,
+    "landing_success_wilson_95_low": 0.036947959247708835,
+    "landing_success_wilson_95_high": 0.043905789326106996,
+    "first_contact_rate": 1.0,
+    "vertical_first_contact_gate_pass_rate": 0.11417643229166667,
+    "hard_ood_landing_success_rate": 0.0,
+    "worst_radius_bin_landing_success_rate": 0.0,
+    "fuel_gate_pass_rate": 0.07584635416666667,
+    "fuel_depletion_rate": 0.8863932291666666,
+    "first_contact_sink_speed_p95_mps": 66.39284553527833,
+    "first_contact_leg_sink_speed_p95_mps": 66.39873313903809,
+    "grid_saturation_rate": 0.5115837315062484,
+    "roll_stable_rate": 1.0,
+    "roll_settling_time_p95_s": 2.5,
+    "forbidden_action_max_abs": 0.0,
+    "plant_lateral_rcs_max_nm": 0.0,
+    "nonfinite_trajectory_rate": 0.0
+  },
+  "integrity": {
+    "passed": true,
+    "contract_lock_passed": true,
+    "promotion_eligible": true,
+    "confirmed_performance_gate_passed": false,
+    "frozen_assets_attested": true,
+    "outcome_dependent_selection": false,
+    "forbidden_learning_methods_detected": false,
+    "research_independence_attested": true,
+    "suspect_leakage": false,
+    "single_success_standard": true,
+    "post_contact_damping_credit_forbidden": true
+  },
+  "candidate_artifacts": {
+    "controller.rs": "ac46d0de1d29a2be9f02a0ef5e140aeddffdc83950eeed40223519dd3a53e293",
+    "controller_config.json": "9aad17d00c3c29081600081ea0a9bd4a0dbb0a0217ea68fd0c42c3762294f5e8",
+    "variant.json": "2051a92f1471f6284e06f8f2fa7650309731d394efe1005450c683a410a5f268"
+  },
+  "execution": {
+    "scoring_elapsed_seconds": 1.996247623,
+    "warm_outer_cargo_wall_seconds_approx": 7.1,
+    "peak_resident_memory_kb": 12892,
+    "canonical_summary": "baseline_evaluation_summary.json"
+  }
+}

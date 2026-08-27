@@ -1,0 +1,34 @@
+schema_version: 1
+name: system
+kind: tool_server
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Read-only system-state surfacing for roles that benefit from cross-run situational awareness.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - tool_server.system
+  - tool.system_active_runs
+  - tool.system_run_summary
+  - tool.system_recent_findings
+  - tool.system_frontier_snapshot
+  - tool.system_recent_errors
+tool_server:
+  server_name: system-tools
+  tool_names:
+    - system_active_runs
+    - system_run_summary
+    - system_recent_findings
+    - system_frontier_snapshot
+    - system_recent_errors
+  visibility:
+    - peer
+    - panel
+  required_capability: tool_server.system
+entrypoint: adapter:create_tool_plugin
+code:
+  - adapter.py
+assets: []

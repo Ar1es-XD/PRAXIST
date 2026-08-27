@@ -1,0 +1,94 @@
+name: product-usage
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: product-usage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: praxist_test
+          POSTGRES_PASSWORD: praxist_test
+          POSTGRES_USER: praxist_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U praxist_test -d praxist_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://praxist_test:praxist_test@127.0.0.1:5432/praxist_test
+      TEST_DATABASE_URL: postgresql+psycopg://praxist_test:praxist_test@127.0.0.1:5432/praxist_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Install Python
+        run: uv python install 3.12
+
+      - name: Install collector dependencies
+        run: uv sync --group dev --extra product-usage-server
+
+      - name: Apply collector migrations
+        run: |
+          uv run alembic -c services/product_usage/alembic.ini upgrade head
+          uv run alembic -c services/product_usage/alembic.ini downgrade base
+          uv run alembic -c services/product_usage/alembic.ini upgrade head
+          uv run alembic -c services/product_usage/alembic.ini downgrade 0001
+          uv run alembic -c services/product_usage/alembic.ini upgrade head
+
+      - name: Test client and collector
+        run: uv run pytest tests/product_usage --tb=short -q
+
+      - name: Verify checked-in schemas
+        run: |
+          uv run python services/product_usage/export_schema.py
+          git diff --exit-code -- praxist/product_usage/schemas
+
+      - name: Validate deployment scripts
+        run: bash -n services/product_usage/deploy/*.sh
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build collector image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: services/product_usage/Dockerfile
+          load: true
+          tags: praxist-collector:ci
+          cache-from: type=gha,scope=product-usage-collector
+          cache-to: type=gha,mode=max,scope=product-usage-collector
+
+      - name: Smoke test image startup contract
+        run: >-
+          docker run --rm praxist-collector:ci
+          alembic -c services/product_usage/alembic.ini --help >/dev/null

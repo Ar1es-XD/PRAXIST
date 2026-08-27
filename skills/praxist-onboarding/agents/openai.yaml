@@ -1,0 +1,4 @@
+interface:
+  display_name: "Praxist Onboarding"
+  short_description: "Understand Praxist and scan local readiness"
+  default_prompt: "Use $praxist-onboarding to understand Praxist, run the default read-only environment scan, and wait for next instructions."

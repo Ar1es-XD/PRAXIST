@@ -1,0 +1,34 @@
+schema_version: 1
+name: ml_scope_and_evidence
+kind: task_audit
+version: 0.1.0
+protocol_version: 1
+stability: template
+mode: declarative
+description: Declarative scope and evidence maturity criteria for a general ML task.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+dependencies: []
+capabilities:
+  - audit.scope_boundary
+  - audit.evidence_maturity
+audit:
+  checks:
+    - id: task_scope
+      severity: blocking
+      criteria:
+        - Work must stay inside the declared ML objective, data boundary, and evaluator contract.
+        - Peers must not modify Praxist orchestration, generic plugins, or evaluator semantics to improve a reported result.
+    - id: evidence_maturity
+      severity: warning
+      criteria:
+        - Complete-evaluation results should include primary metric, artifact path, evaluator command, seed or split, complete-evidence marker, effort_ratio, and coverage_ratio.
+        - Preliminary, aligned, partial, and diagnostic evidence should be labeled using the task maturity policy rather than treated as confirmed by name.
+        - Cheap preliminary evidence must not be used for ranking, parent selection, Gems, or confirmed-frontier evidence unless the user-owned protocol intent explicitly authorizes that mode for the corresponding operation; undeclared drift never gains that authority.
+        - Aligned evidence should document that it shares the complete evaluator path, metric direction, aggregation, invalid-result rules, leakage checks, and same or near-complete data/evaluation coverage.
+        - Aligned evaluation should save compute mainly through reduced training or optimization budget, not by shrinking to a small convenience subset of evaluation units.
+    - id: data_boundary
+      severity: blocking
+      criteria:
+        - Findings must not rely on hidden labels, leaked answers, private data, or unsupported external solution material.
+assets: []

@@ -1,0 +1,17 @@
+schema_version: 1
+name: default_basic
+kind: budget_policy
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Generic deterministic budget policy alias for internal smoke.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - budget.decide
+entrypoint: policy:create_policy
+code:
+  - policy.py
+assets: []

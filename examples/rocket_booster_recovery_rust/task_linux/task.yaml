@@ -1,0 +1,503 @@
+schema_version: 1
+task_version: 3.3.0
+task_id: rocket_booster_recovery_rust_first_contact_7000kg_linux
+task_name: "Rocket Booster Recovery (Rust) Linux 7000 kg First-Contact Landing Research"
+description_file: description.md
+capabilities:
+  - task.classical_control
+  - task.cpu_simulation
+  - task.rust_controller
+  - task.multi_metric_pareto
+  - task.first_contact_safety
+
+research_direction: |
+  Improve the deterministic classical Rocket Booster Recovery controller on the frozen 6DoF
+  landing plant. Neural networks, reinforcement learning, learned policies,
+  learned residuals, and online learning are forbidden. Allowed methods are
+  auditable classical control and optimization: analytic guidance, PID/PD,
+  LQR/LQG, H-infinity, MPC, QP/SOCP/SCP, EKF/UKF, disturbance observers, and
+  reference/constraint governors.
+
+  The actuator contract is immutable: RCS_x produces body-axis roll torque
+  only; RCS_y=RCS_z=grid_roll=+0.0 at controller and plant boundaries;
+  pitch/yaw use only gimbal_y/z and grid_y/z. Roll RCS fuel is not charged,
+  but torque, slew, switching, coupling, and numerical limits remain active.
+  Plant, integrator, contact model, evaluator, source banks, and metric gates
+  may not be changed by researchers.
+
+  This run is an independent search. Every role and every phase, including
+  Gen0 DIG and QD, is forbidden from searching for, opening, copying,
+  translating, replaying, or using earlier Praxist runs, peer transcripts or
+  workspaces, packaged champions, historical score reports, prior controller
+  implementations/configurations, Git-history answers, sibling checkouts, or
+  external paths as a source of mechanisms or parameters. Only the frozen
+  files in this Rust checkout, the generic research directions shipped with
+  this task, and evidence produced after the current run's start boundary are
+  admissible. If forbidden prior material is encountered, stop using it,
+  disclose the incident, and make the affected candidate and descendants
+  ineligible.
+
+  There is exactly one landing-success predicate: `landing_success_rate` at
+  interpolated first landing-leg contact. It requires lateral error <=5 m,
+  controlled first-contact vertical/leg sink speed <=1 m/s, the existing
+  lateral-speed/upright/angular-rate limits, and remaining main propellant
+  >2% of the fixed 7000 kg initial fuel. No post-contact spring or damper
+  response contributes to success. A deliberate engine cut or low-thrust drop
+  that only becomes acceptable after gear damping is forbidden and receives
+  zero evaluator credit.
+
+  First priority is (1) fuel-feasible vertical energy management, (2) hard-OOD
+  outer-annulus rolling-horizon guidance, (4) constrained TVC-grid allocation,
+  and (9) contact-aware terminal management within the observability of the
+  frozen plant. Then integrate fin effectiveness, scheduled attitude control,
+  disturbance estimation, roll-only RCS, and deterministic robust validation.
+
+prompt_layout:
+  base_template: prompt_base.jinja2
+  generation_template: prompt_generation.jinja2
+
+evaluation:
+  primary_metric: landing_success_rate
+  direction: maximize
+  aux_metrics:
+    - landing_success_wilson_95_low
+    - hard_ood_landing_success_rate
+    - worst_radius_bin_landing_success_rate
+    - first_contact_rate
+    - vertical_first_contact_gate_pass_rate
+    - first_contact_sink_speed_p95_mps
+    - first_contact_leg_sink_speed_p95_mps
+    - first_contact_lateral_speed_p95_mps
+    - first_contact_lateral_error_p95_m
+    - first_contact_tilt_p95_deg
+    - fuel_gate_pass_rate
+    - fuel_reserve_mean_fraction
+    - fuel_reserve_p05_fraction
+    - fuel_depletion_rate
+    - grid_saturation_rate
+    - gimbal_saturation_rate
+    - throttle_saturation_rate
+    - roll_stable_rate
+    - roll_settling_time_p95_s
+    - research_independence_attested
+  seeds: [20260821, 20260822]
+  aggregation: deterministic_stratified_rates_and_quantiles
+  maturity_policy:
+    min_effort_ratio: 1.0
+    min_coverage_ratio: 1.0
+    require_ratio_gate: true
+    complete_stage_labels: [complete]
+    preliminary_stage_labels: [canary, development, roll_diagnostic]
+  constructive_peer_mix_enabled: true
+  constructive_target_ratio: 0.75
+  launch_guard:
+    enabled: true
+    estimated_heavy_eval_minutes: 0.45
+    estimated_close_grade_eval_minutes: 0.45
+    safety_factor: 1.50
+  staged_protocols:
+    - name: canary
+      launch_allowed: true
+      ranking_allowed: false
+      mature_allowed: false
+      parent_allowed: false
+      close_allowed: false
+    - name: development
+      launch_allowed: true
+      ranking_allowed: true
+      mature_allowed: false
+      parent_allowed: false
+      close_allowed: false
+    - name: roll_diagnostic
+      launch_allowed: true
+      ranking_allowed: false
+      mature_allowed: false
+      parent_allowed: false
+      close_allowed: false
+    - name: complete
+      launch_allowed: true
+      ranking_allowed: true
+      mature_allowed: true
+      parent_allowed: true
+      close_allowed: true
+  diversity_dimensions:
+    - name: mechanism_family
+      description: "Classical method family: analytic energy, SCP/MPC, geometric/LQR, QP allocation, observer, hybrid state machine, robust search, or control."
+    - name: intervention_surface
+      description: "Exactly one owned controller module in round one; never plant, integrator, contact model, evaluator, or data."
+    - name: intent
+      description: "Explore, exploit, bridge, repair, falsify, ablate, diagnose, or control."
+    - name: semantic_family
+      description: "Mechanistically distinct controller family, not a renamed parameter perturbation."
+    - name: parent_lineage
+      description: "Frozen baseline, confirmed parent, incubator parent, or independent lineage."
+    - name: novelty_axis
+      description: "The concrete new invariant, constraint, estimator, allocation law, schedule, or counterexample targeted."
+  must_explore_axes:
+    - name: fuel_feasible_energy_manager
+      description: "Analytic braking-distance/root-solved ignition with touchdown mass reserve safety cage."
+    - name: hard_ood_trajectory_guidance
+      description: "Low-frequency warm-started SCP/QP-MPC or reachability-aware analytic guidance with energy fallback."
+    - name: constrained_yz_allocator
+      description: "QP/weighted least-squares TVC-grid allocation with amplitude/rate/dynamic-pressure limits."
+    - name: terminal_landing_manager
+      description: "Powered near-ground velocity corridor through first leg contact; post-contact damping credit and deliberate gear-impact drops are forbidden."
+    - name: roll_rcs_disturbance_rejection
+      description: "Deadband/hysteresis/PWPF or constrained bang-bang roll-only RCS without pitch/yaw channels."
+  frontier_lanes:
+    - name: confirmed
+      description: "Complete, contract-clean candidates under the single first-contact landing-success predicate."
+      k: 4
+      cumulative_cap: 24
+      axes:
+        - {name: landing_success_rate, direction: maximize}
+        - {name: hard_ood_landing_success_rate, direction: maximize}
+        - {name: worst_radius_bin_landing_success_rate, direction: maximize}
+        - {name: first_contact_sink_speed_p95_mps, direction: minimize}
+      optional_axes:
+        - {name: landing_success_wilson_95_low, direction: maximize}
+        - {name: fuel_gate_pass_rate, direction: maximize}
+        - {name: first_contact_leg_sink_speed_p95_mps, direction: minimize}
+        - {name: first_contact_lateral_speed_p95_mps, direction: minimize}
+        - {name: first_contact_tilt_p95_deg, direction: minimize}
+        - {name: grid_saturation_rate, direction: minimize}
+      include_lanes: [confirmed, performance]
+      require_metrics: [landing_success_rate, hard_ood_landing_success_rate, worst_radius_bin_landing_success_rate, first_contact_sink_speed_p95_mps]
+      require_truthy_metrics: [scored_complete, protocol_integrity_passed, contract_lock_passed, research_independence_attested, promotion_eligible, confirmed_performance_gate_passed]
+      require_falsey_metrics: [protocol_integrity_failed, is_smoke_eval, partial, validation_only, late_after_generation_boundary, suspect_protocol, suspect_leakage]
+      parent_eligible: true
+      allow_missing_tier: true
+    - name: incubator
+      description: "Durable Pareto/new-high library across outcome, first-contact safety, 2% fuel feasibility, actuator load, and roll robustness."
+      k: 16
+      cumulative_cap: 96
+      admit_new_high: true
+      axes:
+        - {name: landing_success_rate, direction: maximize}
+        - {name: first_contact_sink_speed_p95_mps, direction: minimize}
+        - {name: fuel_gate_pass_rate, direction: maximize}
+        - {name: grid_saturation_rate, direction: minimize}
+        - {name: roll_stable_rate, direction: maximize}
+      optional_axes:
+        - {name: hard_ood_landing_success_rate, direction: maximize}
+        - {name: worst_radius_bin_landing_success_rate, direction: maximize}
+        - {name: first_contact_leg_sink_speed_p95_mps, direction: minimize}
+        - {name: first_contact_rate, direction: maximize}
+        - {name: fuel_reserve_p05_fraction, direction: maximize}
+        - {name: vertical_first_contact_gate_pass_rate, direction: maximize}
+        - {name: first_contact_lateral_speed_p95_mps, direction: minimize}
+        - {name: first_contact_tilt_p95_deg, direction: minimize}
+        - {name: roll_settling_time_p95_s, direction: minimize}
+      include_lanes: [incubator, performance]
+      require_metrics: [landing_success_rate, first_contact_sink_speed_p95_mps, fuel_gate_pass_rate, grid_saturation_rate, roll_stable_rate]
+      require_truthy_metrics: [scored_complete, protocol_integrity_passed, contract_lock_passed, research_independence_attested, promotion_eligible]
+      require_falsey_metrics: [protocol_integrity_failed, is_smoke_eval, partial, scout_only, validation_only, validation_only_result, late_after_generation_boundary, suspect_protocol, suspect_leakage]
+      parent_eligible: true
+      allow_missing_tier: true
+      allow_risk_violating: true
+    - name: task_candidate
+      description: "Development evidence retained for revalidation, never a durable parent."
+      k: 8
+      cumulative_cap: 48
+      axes:
+        - {name: landing_success_rate, direction: maximize}
+        - {name: first_contact_sink_speed_p95_mps, direction: minimize}
+        - {name: fuel_gate_pass_rate, direction: maximize}
+      optional_axes:
+        - {name: first_contact_rate, direction: maximize}
+        - {name: fuel_depletion_rate, direction: minimize}
+      include_lanes: [task_candidate, candidate, development, preliminary, partial, repair]
+      require_metrics: [landing_success_rate]
+      parent_eligible: false
+      allow_lower_tier: true
+      allow_non_promotable: true
+      allow_missing_tier: true
+    - name: diagnostic
+      description: "Canaries, roll-only tests, controls, invalid outputs, safety failures, falsifiers, and process observations."
+      k: 6
+      cumulative_cap: 32
+      axes:
+        - {name: first_contact_rate, direction: maximize}
+        - {name: roll_stable_rate, direction: maximize}
+      optional_axes:
+        - {name: roll_peak_rate_p95_radps, direction: minimize}
+        - {name: roll_pitch_yaw_coupling_p95_radps, direction: minimize}
+        - {name: roll_rcs_switches_mean, direction: minimize}
+        - {name: roll_rcs_total_variation_mean_nm, direction: minimize}
+        - {name: first_contact_sink_speed_p95_mps, direction: minimize}
+        - {name: first_contact_leg_sink_speed_p95_mps, direction: minimize}
+        - {name: first_contact_lateral_error_p95_m, direction: minimize}
+        - {name: unsafe_first_contact_rate, direction: minimize}
+        - {name: gear_damping_credit_rate, direction: minimize}
+        - {name: gimbal_saturation_rate, direction: minimize}
+        - {name: throttle_saturation_rate, direction: minimize}
+        - {name: rcs_roll_cap_rate, direction: minimize}
+        - {name: gimbal_total_variation_mean_rad, direction: minimize}
+        - {name: grid_total_variation_mean_rad, direction: minimize}
+        - {name: throttle_total_variation_mean, direction: minimize}
+        - {name: evaluator_wall_seconds, direction: minimize}
+        - {name: forbidden_action_max_abs, direction: minimize}
+        - {name: plant_lateral_rcs_max_nm, direction: minimize}
+        - {name: nonfinite_trajectory_rate, direction: minimize}
+      include_lanes: [diagnostic, control, process, reference, negative_control]
+      parent_eligible: false
+      allow_lower_tier: true
+      allow_non_promotable: true
+      allow_missing_tier: true
+
+compute_budget:
+  per_experiment_gpu_hours: 0
+  max_parallel_runs_per_peer: 1
+  resource_scheduler:
+    mode: central
+    initial_concurrent_experiments: 2
+    min_concurrent_experiments: 1
+    max_concurrent_experiments: 2
+    supply_signal_enabled: true
+    supply_idle_samples: 3
+    supply_lease_seconds: 600
+    mature_supply_fraction: 0.25
+    mature_supply_redundancy: 3.0
+    mature_assessment_min_completion_probability: 0.25
+    exploration_reserve: 1
+    infrastructure_retries: 2
+    default_profile: cpu_evaluation
+    profiles:
+      cpu_evaluation:
+        accelerator: cpu
+        pressure_domains: [cpu, memory, io]
+
+toolchain:
+  framework: rust_classical_control_cpu
+  entrypoint_template: assets/baseline/controller.rs
+  eval_entrypoint: "cargo run --release --locked --offline --manifest-path Cargo.toml --bin rocket-booster-recovery-task-eval --"
+  benchmark_entrypoint: "cargo run --release --locked --offline --manifest-path Cargo.toml --bin rocket-booster-recovery-task-eval --"
+
+task_entrypoints:
+  evaluation:
+    command: "cargo run --release --locked --offline --manifest-path Cargo.toml --bin rocket-booster-recovery-task-eval --"
+    output_policy: "scheduled commands use --output-dir and write one peer-owned evaluation_summary.json under results/gen_<N>/<peer_id>/<variant_id>/<mode>; task-root cwd is mandatory"
+    purpose: "Only public scoring entrypoint for candidate controllers."
+
+task_assets:
+  baseline_variant: assets/baseline
+  baseline_results: assets/baselines/results.jsonl
+  baselines:
+    curated_results: assets/baselines/results.jsonl
+  dataset_protocol: assets/dataset_metadata/validation_protocol.json
+  resource_plan: assets/resource_plan.md
+  protocol_intent: assets/protocol_intent.md
+  research_directions: assets/literature/research_directions.md
+  research_independence_policy: assets/research_independence_policy.md
+
+runtime_outputs:
+  root: experiments
+  gitignored: true
+  policy: "Variants, summaries, logs, and temporary outputs remain under this task-owned directory or the Praxist run directory; scheduled summaries use unique results/gen_<N>/<peer_id>/<variant_id>/<mode> roots and never the run-wide results directory as cwd."
+
+runtime_environment:
+  cwd: task_project
+  require_paths: false
+  env:
+    CARGO: "cargo"
+    CARGO_NET_OFFLINE: "true"
+    CARGO_TERM_COLOR: "never"
+    CARGO_INCREMENTAL: "false"
+    CARGO_TARGET_DIR: "../target/task_linux"
+    CARGO_BUILD_JOBS: "4"
+    RAYON_NUM_THREADS: "16"
+  protected_child_paths:
+    - assets
+    - evaluations
+    - audit_rules
+    - src
+    - Cargo.toml
+    - Cargo.lock
+    - .cargo
+  writable_roots:
+    - scratch
+    - ../target
+
+generation_policy:
+  max_generations: 30
+  cohort_size: 16
+  per_generation_hours: 2.0
+  promote_top_k: 4
+  promote_criterion: multi_metric_frontier_lanes
+
+synthesis_trigger:
+  enabled: true
+  min_findings: 16
+  min_interval_minutes: 90
+  max_interval_minutes: 90
+  min_contributing_peers: 4
+  mature_quorum_fraction: 0.25
+  poll_interval_seconds: 30
+  adaptive:
+    drain_grace_minutes: 5
+
+research_memory:
+  enabled: true
+  rollout_phase: 2
+  evidence_pack_max_cards: 48
+  citation_coverage_min: 0.95
+  negative_evidence_ratio_min: 0.20
+  bridge_coverage_check_required: true
+
+multi_pi:
+  enabled: true
+  panel_mode_default: full
+  auto_escalate_to_high_stakes: true
+  pi_max_runtime_minutes: 12
+  chair_max_runtime_minutes: 25
+  chair_peer_budget: 16
+  shared_core_ratio_target: 0.65
+  private_kb_ratio_target: 0.35
+  fallback_to_single_pi_on_panel_failure: true
+
+dig_lite:
+  enabled: true
+  generation_scope: initial_only
+  phase: pre_code_only
+  experiments_allowed: false
+  shell_allowed: false
+  code_writes_allowed: false
+  result_writes_allowed: false
+  candidate_count: 24
+  min_mechanism_families: 8
+  min_intervention_surfaces: 8
+  max_refinement_rounds: 2
+  max_attempts: 30
+  max_total_runtime_minutes: 50
+  fallback_to_direct_on_failure: true
+  planner_allowed_tools: [Read, Grep, Glob]
+  planner_max_runtime_minutes: 15
+  strict: true
+  inject_contract_into_prompt: true
+  diversity:
+    cell_fields: [mechanism_family, intervention_surface, intent]
+    selection: best_within_lane
+    reject_near_duplicate: true
+    duplicate_threshold: 0.82
+    allow_adjacent_lane_fallback: true
+  innovation:
+    enabled: true
+    enforce_forward_slots: true
+    max_diagnostic_fraction: 0.1875
+    max_diagnostic_peers: 3
+  contract:
+    require_selected_contract: true
+    require_ablation_hooks: true
+    min_rejected_alternatives: 3
+    require_forbidden_changes: true
+    require_expected_metric_signature: true
+    require_fail_fast_checks: true
+  write_gate:
+    enabled: true
+    allow_writes_only_under_dig_dir_before_unlock: true
+    block_shell_before_unlock: true
+    block_variant_dir_before_unlock: true
+    block_results_dir_before_unlock: true
+
+quality_diversity:
+  enabled: true
+  initial_generation_enabled: true
+  later_generations_enabled: true
+  max_same_diversity_cell_peers: 2
+  max_same_mechanism_family_fraction: 0.25
+  max_same_intervention_surface_fraction: 0.25
+  max_same_intent_fraction: 0.60
+
+gems:
+  enabled: false
+  selection_policy: mature_evidence_top_k
+  min_mature_eval_units: 13312
+  evidence_stage_min_units:
+    complete: 13312
+  max_resets: 3
+  max_gems_per_reset: 8
+  max_gems_total: 16
+  max_gems_per_family: 2
+  min_frontier_entries: 4
+  archive_ordinary_findings: true
+  prompt_max_gems: 8
+  include_lanes: [confirmed, performance, incubator]
+  result_artifact_default_lane: task_candidate
+  result_artifact_default_family: classical_controller_variant
+  bottleneck_detector_mode: generic
+
+agent:
+  premium_mode: false
+  reasoning_effort: max
+
+# Values below were remeasured by the Rust evaluator on 2026-08-24 on
+# the declared Intel Xeon CPU server. No GPU is used or required.
+baselines:
+  - {name: baseline_landing_success, metric_name: landing_success_rate, metric_value: 0.040283203125, direction: maximize}
+  - {name: baseline_landing_success_lcb, metric_name: landing_success_wilson_95_low, metric_value: 0.036947959247708835, direction: maximize}
+  - {name: baseline_hard_ood, metric_name: hard_ood_landing_success_rate, metric_value: 0.0, direction: maximize}
+  - {name: baseline_worst_radius, metric_name: worst_radius_bin_landing_success_rate, metric_value: 0.0, direction: maximize}
+  - {name: baseline_first_contact, metric_name: first_contact_rate, metric_value: 1.0, direction: maximize}
+  - {name: baseline_vertical_gate, metric_name: vertical_first_contact_gate_pass_rate, metric_value: 0.11417643229166667, direction: maximize}
+  - {name: baseline_fuel_gate, metric_name: fuel_gate_pass_rate, metric_value: 0.07584635416666667, direction: maximize}
+  - {name: baseline_fuel_p05, metric_name: fuel_reserve_p05_fraction, metric_value: 0.0, direction: maximize}
+  - {name: baseline_fuel_depletion, metric_name: fuel_depletion_rate, metric_value: 0.8863932291666666, direction: minimize}
+  - {name: baseline_sink_p95, metric_name: first_contact_sink_speed_p95_mps, metric_value: 66.39284553527833, direction: minimize}
+  - {name: baseline_leg_sink_p95, metric_name: first_contact_leg_sink_speed_p95_mps, metric_value: 66.39873313903809, direction: minimize}
+  - {name: baseline_lateral_speed_p95, metric_name: first_contact_lateral_speed_p95_mps, metric_value: 1.4059240893123746, direction: minimize}
+  - {name: baseline_lateral_error_p95, metric_name: first_contact_lateral_error_p95_m, metric_value: 7.092804141764914, direction: minimize}
+  - {name: baseline_tilt_p95, metric_name: first_contact_tilt_p95_deg, metric_value: 4.560630827690427, direction: minimize}
+  - {name: baseline_grid_saturation, metric_name: grid_saturation_rate, metric_value: 0.5115837315062484, direction: minimize}
+  - {name: baseline_gimbal_saturation, metric_name: gimbal_saturation_rate, metric_value: 0.00009502135500231766, direction: minimize}
+  - {name: baseline_throttle_saturation, metric_name: throttle_saturation_rate, metric_value: 0.0005516088868115981, direction: minimize}
+  - {name: baseline_roll_stable, metric_name: roll_stable_rate, metric_value: 1.0, direction: maximize}
+  - {name: baseline_roll_settling, metric_name: roll_settling_time_p95_s, metric_value: 2.5, direction: minimize}
+  - {name: baseline_no_damping_credit, metric_name: gear_damping_credit_rate, metric_value: 0.0, direction: minimize}
+
+praxist_plugins:
+  task_ref: task:rocket_booster_recovery_rust_first_contact_7000kg_linux
+  workflow:
+    stage: workflow_stage:research_loop
+  panel:
+    topology: panel_topology:legacy_multi_pi_two_round
+    roles:
+      - task_role:peer_generalist
+      - task_role:starter
+      - task_role:solver
+      - task_role:analyst
+      - task_role:energy_manager
+      - task_role:trajectory_guidance
+      - task_role:attitude_controller_yz
+      - task_role:allocator_yz
+      - task_role:fin_effectiveness_model
+      - task_role:state_disturbance_estimator
+      - task_role:roll_rcs_controller
+      - task_role:constraint_governor
+      - task_role:terminal_landing_manager
+      - task_role:robust_design_validation
+      - task_role:builder_pi
+      - task_role:skeptic_pi
+      - task_role:portfolio_pi
+      - task_role:external_validity_pi
+      - task_role:chair
+    optional_roles:
+      literature_scout:
+        role: task_role:literature_scout
+        enabled: false
+        note: "Deliberately disabled: the operator requested an offline research run."
+  audit_rules:
+    - task_audit:scope_and_protocol
+  evaluations:
+    - task_evaluation:controller_ood
+  tools:
+    - tool_server:evaluation_tools
+    - tool_server:frontier_tools
+    - tool_server:finding_graph_query
+    - tool_server:memory_tools
+    - tool_server:run_report
+  graph_maintainers:
+    - graph_maintainer:finding_graph_mvp
+  optional_workflow_stages:
+    ideation: workflow_stage:ideation_stub
+    paper_writing: workflow_stage:paper_writing_stub
+    reviewer: workflow_stage:reviewer_stub

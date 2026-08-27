@@ -1,0 +1,70 @@
+{
+  "optimizer": "sam",
+  "variant_path": "",
+  "datasets": [
+    "cifar10",
+    "cifar100",
+    "tiny-imagenet"
+  ],
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "epochs": 20,
+  "batch_size": 256,
+  "bf16": true,
+  "per_dataset": {
+    "cifar10": {
+      "num_seeds": 5,
+      "test_accuracy": {
+        "mean": 0.8929600000000001,
+        "std": 0.01024960487043284,
+        "min": 0.8773,
+        "max": 0.9028
+      },
+      "train_test_gap": {
+        "mean": 0.01677200000000001,
+        "std": 0.00329980847929086
+      },
+      "train_time_seconds": {
+        "mean": 107.27365856170654
+      }
+    },
+    "cifar100": {
+      "num_seeds": 5,
+      "test_accuracy": {
+        "mean": 0.7155400000000001,
+        "std": 0.000854634424768851,
+        "min": 0.7146,
+        "max": 0.7171
+      },
+      "train_test_gap": {
+        "mean": 0.145068,
+        "std": 0.0029872689868841408
+      },
+      "train_time_seconds": {
+        "mean": 107.01797289848328
+      }
+    },
+    "tiny-imagenet": {
+      "num_seeds": 5,
+      "test_accuracy": {
+        "mean": 0.57656,
+        "std": 0.0011359577456930157,
+        "min": 0.5744,
+        "max": 0.5777
+      },
+      "train_test_gap": {
+        "mean": 0.269822,
+        "std": 0.0011289889282008162
+      },
+      "train_time_seconds": {
+        "mean": 279.4024706363678
+      }
+    }
+  },
+  "total_wall_clock_seconds": 2477.9343597888947
+}

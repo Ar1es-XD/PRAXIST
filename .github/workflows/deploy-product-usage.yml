@@ -1,0 +1,91 @@
+name: Deploy Development Product Usage Collector
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_digest:
+        description: Published collector sha256 digest
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: product-usage-collector-development
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate immutable image digest
+        env:
+          IMAGE_DIGEST: ${{ inputs.image_digest }}
+        run: '[[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]'
+
+      - name: Install SSH identity
+        env:
+          BASTION_HOST: ${{ secrets.COLLECTOR_BASTION_HOST }}
+          BASTION_HOST_KEY: ${{ secrets.COLLECTOR_BASTION_HOST_KEY }}
+          BASTION_PORT: ${{ secrets.COLLECTOR_BASTION_PORT }}
+          BASTION_USER: ${{ secrets.COLLECTOR_BASTION_USER }}
+          SSH_HOST: ${{ secrets.COLLECTOR_SSH_HOST }}
+          SSH_KEY: ${{ secrets.COLLECTOR_SSH_KEY }}
+          SSH_HOST_KEY: ${{ secrets.COLLECTOR_HOST_KEY }}
+          SSH_PORT: ${{ secrets.COLLECTOR_SSH_PORT }}
+          SSH_USER: ${{ secrets.COLLECTOR_SSH_USER }}
+        run: |
+          for name in BASTION_HOST BASTION_HOST_KEY BASTION_USER SSH_HOST SSH_HOST_KEY SSH_KEY SSH_USER; do
+            test -n "${!name}" || {
+              echo "$name development secret is required" >&2
+              exit 1
+            }
+          done
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/collector_deploy
+          printf '%s\n%s\n' "$BASTION_HOST_KEY" "$SSH_HOST_KEY" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/collector_deploy ~/.ssh/known_hosts
+          {
+            echo "Host collector-bastion"
+            echo "  HostName $BASTION_HOST"
+            echo "  Port ${BASTION_PORT:-22}"
+            echo "  User $BASTION_USER"
+            echo "  IdentityFile ~/.ssh/collector_deploy"
+            echo "  IdentitiesOnly yes"
+            echo "  BatchMode yes"
+            echo "  StrictHostKeyChecking yes"
+            echo "Host collector-target"
+            echo "  HostName $SSH_HOST"
+            echo "  Port ${SSH_PORT:-22}"
+            echo "  User $SSH_USER"
+            echo "  IdentityFile ~/.ssh/collector_deploy"
+            echo "  IdentitiesOnly yes"
+            echo "  BatchMode yes"
+            echo "  StrictHostKeyChecking yes"
+            echo "  ProxyJump collector-bastion"
+          } > ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Authenticate server to GHCR
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | ssh collector-target \
+            "ghcr-login ${{ github.actor }}"
+
+      - name: Deploy and verify development service
+        env:
+          COLLECTOR_HOST: ${{ secrets.COLLECTOR_PUBLIC_HOST }}
+          IMAGE_DIGEST: ${{ inputs.image_digest }}
+        run: ssh collector-target "deploy $COLLECTOR_HOST $IMAGE_DIGEST"
+
+      - name: Verify public health endpoint
+        env:
+          HOST: ${{ secrets.COLLECTOR_PUBLIC_HOST }}
+        run: curl -fsS --retry 10 --retry-all-errors --retry-delay 3 "http://$HOST/healthz"

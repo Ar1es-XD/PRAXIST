@@ -1,0 +1,34 @@
+{
+  "variant_id": "rocket_booster_recovery_rust_v2_first_contact_7000kg_baseline",
+  "display_name": "Rocket Booster Recovery (Rust) v2 powered-first-contact 7000 kg baseline",
+  "method_class": "deterministic_classical_control",
+  "changed_modules": [],
+  "parent_variant_id": null,
+  "design_dimensions": {
+    "mechanism_family": "analytic_composite_baseline",
+    "intervention_surface": "none_baseline_control",
+    "intent": "control",
+    "semantic_family": "rocket_booster_recovery_v2_powered_first_contact",
+    "parent_lineage": "frozen_baseline",
+    "novelty_axis": "no_post_contact_damping_credit"
+  },
+  "research_independence": {
+    "prior_run_artifacts_accessed": false,
+    "external_controller_implementation_accessed": false,
+    "historical_performance_results_used": false,
+    "copied_or_translated_prior_solution": false
+  },
+  "provenance": {
+    "source_controller": "../../../src/controller.rs",
+    "source_config": "../../../config/controller.json",
+    "source_controller_sha256": "ac46d0de1d29a2be9f02a0ef5e140aeddffdc83950eeed40223519dd3a53e293",
+    "source_config_sha256": "9aad17d00c3c29081600081ea0a9bd4a0dbb0a0217ea68fd0c42c3762294f5e8",
+    "copied_without_semantic_change": true,
+    "implementation_language": "Rust",
+    "task_owner_changes": [
+      "fixed initial fuel at 7000 kg",
+      "removed pre-contact low-thrust gear-sink phase",
+      "kept powered vertical corridor active through first leg contact"
+    ]
+  }
+}

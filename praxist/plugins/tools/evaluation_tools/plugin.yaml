@@ -1,0 +1,37 @@
+schema_version: 1
+name: evaluation_tools
+kind: tool_server
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Evaluation MCP tools for findings, metrics, and bounded task-owned file readiness.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies:
+  - kind: workflow_stage
+    name: research_loop
+  - kind: graph_maintainer
+    name: finding_graph_mvp
+capabilities:
+  - tool_server.evaluation_tools
+  - tool.share_finding
+  - tool.wait_for_file
+  - tool.read_tool_result
+tool_server:
+  server_name: evaluation-tools
+  tool_names:
+    - log_experiment_metrics
+    - share_finding
+    - get_leaderboard
+    - wait_for_file
+    - read_tool_result
+  visibility:
+    - peer
+    - panel
+  required_capability: tool_server.evaluation_tools
+entrypoint: adapter:create_tool_plugin
+code:
+  - adapter.py
+  - __main__.py
+assets: []

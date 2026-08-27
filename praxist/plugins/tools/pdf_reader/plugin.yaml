@@ -1,0 +1,28 @@
+schema_version: 1
+name: pdf_reader
+kind: tool_server
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: PDF reader MCP tool — rasterize via poppler + OCR via tesseract for research papers (#128).
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - tool_server.pdf_reader
+  - tool.pdf_read
+  - tool.pdf_metadata
+tool_server:
+  server_name: pdf-reader
+  tool_names:
+    - pdf_read
+    - pdf_metadata
+  visibility:
+    - peer
+    - panel
+  required_capability: tool_server.pdf_reader
+entrypoint: adapter:create_tool_plugin
+code:
+  - adapter.py
+assets: []

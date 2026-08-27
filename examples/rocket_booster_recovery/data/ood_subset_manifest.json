@@ -1,0 +1,37 @@
+{
+  "protocol": "precommitted_stratified_ood_subset_v1",
+  "status": "archived_pre_v2_subset; development rows remain reused, formal rows are not the current complete baseline denominator",
+  "selection_seed": 20260821,
+  "selection_algorithm": "numpy.default_rng(seed).permutation; first 1024 dev, next 8192 formal per source",
+  "outcome_dependent_filtering": false,
+  "sources": {
+    "near_ood": {
+      "source_id": 0,
+      "repository_path": "data/source_banks/near_ood_easy_velocity_40960.npz",
+      "sha256": "d35803608dd3dedbbd4db76d9b39aebe37c2eedbdba4ad9ec0dcd94a690d7730",
+      "source_rows": 40960,
+      "dev_rows": 1024,
+      "formal_rows": 8192
+    },
+    "hard_ood": {
+      "source_id": 1,
+      "repository_path": "data/source_banks/hard_ood_fast_outer_annulus_40960.npz",
+      "sha256": "55d3e0054ef5d225b78f6558a4e15a3a908bedb84daabb7cc66b8e6579fd297c",
+      "source_rows": 40960,
+      "dev_rows": 1024,
+      "formal_rows": 8192
+    }
+  },
+  "development": {
+    "repository_path": "data/development_ood_2048.npz",
+    "rows": 2048,
+    "sha256": "00539ee4e538fab8a65e82ae737289e5b42aa9dfae70da9da1cec5e7c8871f94"
+  },
+  "formal": {
+    "repository_path": "data/formal_ood_16384.npz",
+    "rows": 16384,
+    "sha256": "f87cba464c459924d593b64a392741bca8705033c7b29e0b33bee5e0ef5a2da3"
+  },
+  "current_complete_protocol": "task_GPU_server/assets/dataset_metadata/validation_protocol.json",
+  "nominal_bank_exclusion": "nominal_unseen_40960 is preserved and evaluated separately; it is intentionally excluded from this precommitted two-stratum OOD subset"
+}

@@ -1,0 +1,29 @@
+[package]
+name = "rocket-booster-recovery-task"
+version = "0.3.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Rust CPU Praxist harness for Rocket Booster Recovery classical-control research"
+publish = false
+
+[workspace]
+resolver = "3"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+hex = "0.4"
+rayon = "1.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+rocket-booster-recovery-rust = { path = ".." }
+syn = { version = "2.0", features = ["full", "visit"] }
+
+[[bin]]
+name = "rocket-booster-recovery-task-eval"
+path = "src/bin/evaluator.rs"
+
+[[bin]]
+name = "rocket-booster-recovery-rust-resource-observe"
+path = "src/bin/resource_observe.rs"

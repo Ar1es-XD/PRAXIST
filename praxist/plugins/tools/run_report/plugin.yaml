@@ -1,0 +1,30 @@
+schema_version: 1
+name: run_report
+kind: tool_server
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Generate human-readable Praxist run reports from canonical run artifacts.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - tool_server.run_report
+  - tool.run_report_generate
+contracts:
+  evidence_schema: core:run_report.v1
+  credential_scope: none
+  role_scope: operator_or_panel
+tool_server:
+  server_name: run-report
+  tool_names:
+    - generate_run_report
+  visibility:
+    - panel
+  required_capability: tool_server.run_report
+entrypoint: adapter:create_tool_plugin
+code:
+  - adapter.py
+  - __main__.py
+assets: []

@@ -1,0 +1,37 @@
+schema_version: 1
+name: sam_builder_pi
+kind: role
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Builder PI role for SAM runs; constructs the strongest coherent research mainline.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - role.skill
+  - pi.memo
+  - pi.private_kb
+role:
+  role_id: builder
+  legacy_role_id: builder
+  display_name: SAM Builder PI
+  role_kind: pi
+  default_model_profile_ref: strong_reasoner
+  output_schema_ref: core:pi_memo.v1
+  tool_scope:
+    - filesystem.read
+    - memory_tools.panel_read
+  private_kb:
+    - private_kb/sam_asam_gsam_mechanism_notes.md
+  fixed_questions:
+    - What is the strongest mechanism explanation right now?
+    - Which scaling law is most worth continuing to exploit?
+    - Which Pareto arm has the most remaining headroom?
+    - Which findings can be synthesized into a cross-peer hypothesis?
+    - Which next-generation peer should advance the mainline?
+code: []
+assets:
+  - skill.md
+  - private_kb/*.md

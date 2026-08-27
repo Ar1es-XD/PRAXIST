@@ -1,0 +1,28 @@
+schema_version: 1
+name: prior_work_tools
+kind: tool_server
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Existing prior-work MCP tools for downloading prior workspace snapshots from previous findings.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies:
+  - kind: workflow_stage
+    name: research_loop
+capabilities:
+  - tool_server.prior_work_tools
+  - tool.prior_snapshot_download
+tool_server:
+  server_name: prior-work-tools
+  tool_names:
+    - download_snapshot
+  visibility:
+    - peer
+  required_capability: tool_server.prior_work_tools
+  enabled_in_local_mode: false
+entrypoint: adapter:create_tool_plugin
+code:
+  - adapter.py
+assets: []

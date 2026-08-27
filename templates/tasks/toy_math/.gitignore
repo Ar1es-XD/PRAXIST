@@ -1,0 +1,35 @@
+# Python / test caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local datasets and large generated outputs
+data/
+datasets/
+results/
+runs/
+outputs/
+experiments/
+experiments_tracking/
+frontier/
+shared_findings/
+research_memory/
+variants/
+logs/
+
+# Runtime ledgers and local operator state
+*.log
+*.pid
+STOP_SIGNAL
+ORCHESTRATOR_SHUTDOWN
+shared_store.db
+*.sqlite
+*.sqlite3
+
+# Local secrets and machine-specific config
+.env
+.env.*
+*.key
+*.pem

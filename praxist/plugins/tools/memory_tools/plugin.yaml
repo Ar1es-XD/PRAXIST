@@ -1,0 +1,40 @@
+schema_version: 1
+name: memory_tools
+kind: tool_server
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Existing research-memory MCP tools for PI evidence-card and ledger queries.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies:
+  - kind: workflow_stage
+    name: research_loop
+capabilities:
+  - tool_server.memory_tools
+  - tool.evidence_card_query
+  - tool.ledger_query
+  - tool.coverage_matrix_query
+  - tool.open_objection_query
+  - tool.source_ref_resolution
+tool_server:
+  server_name: memory-tools
+  tool_names:
+    - get_evidence_card
+    - query_evidence_cards
+    - query_coverage_matrix
+    - list_active_claims
+    - list_open_objections
+    - get_ledger_entry
+    - resolve_source_ref
+  visibility:
+    - panel
+  required_capability: tool_server.memory_tools
+  requires_run_dir: true
+  requires_multi_pi: true
+entrypoint: adapter:create_tool_plugin
+code:
+  - adapter.py
+  - __main__.py
+assets: []

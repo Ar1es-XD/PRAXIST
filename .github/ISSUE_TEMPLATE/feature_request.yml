@@ -1,0 +1,43 @@
+name: Feature request
+description: Propose a focused, cross-task Praxist improvement.
+title: "[Feature]: "
+labels: []
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user or research-workflow problem without prescribing an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current workaround
+      description: Explain how the problem is handled today and why that is insufficient.
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest public behavior change that would solve the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: generality
+    attributes:
+      label: Cross-task applicability
+      description: Explain why the capability belongs in Praxist rather than one task harness.
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and alternatives
+      description: Note affected runtimes, providers, platforms, artifacts, and simpler alternatives.
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues and documentation for the same capability.
+          required: true

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Praxist Runtime Install"
+  short_description: "Install Praxist and provider keys"
+  default_prompt: "Use $praxist-runtime-install to install Praxist dependencies, including official openai-codex SDK/MCP/relay support when the Codex peer runtime is selected; verify saved ChatGPT auth for native OpenAI when requested; and, when provider/API keys are supplied, persist redacted user-level Praxist provider config."

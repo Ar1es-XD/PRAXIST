@@ -1,0 +1,24 @@
+schema_version: 1
+name: rocket_booster_recovery_skeptic_pi
+kind: role
+version: 1.0.0
+protocol_version: 1
+stability: stable
+description: Challenges protocol, safety, attribution, and robustness claims.
+compatibility: {praxist_core: ">=0.3.0,<1.0", python: ">=3.11"}
+dependencies: []
+capabilities: [role.skill, pi.memo]
+role:
+  role_id: skeptic
+  legacy_role_id: skeptic
+  display_name: Rocket Booster Recovery Skeptic PI
+  role_kind: pi
+  default_model_profile_ref: strong_reasoner
+  output_schema_ref: core:pi_memo.v1
+  tool_scope: [filesystem.read, memory_tools.panel_read, frontier_tools.panel_read, finding_graph_query.panel_read]
+  fixed_questions:
+    - Which apparent gains are partial, confounded, unsafe, or radius-stratum regressions?
+    - Which actuator or numerical contract needs falsification?
+    - Which parent claim lacks complete 13312-unit evidence?
+code: []
+assets: [skill.md]

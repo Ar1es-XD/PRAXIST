@@ -1,0 +1,109 @@
+schema_version: 1
+name: legacy_multi_pi_two_round
+kind: panel_topology
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: "Generic legacy-compatible Multi-PI topology: evidence pack, independent memos, anonymized cross-review, Chair agenda."
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - panel.multi_pi
+  - panel.round1_independent_memos
+  - panel.round2_cross_review
+  - panel.chair_agenda
+  - panel.executable_legacy_executor
+topology:
+  topology_ref: panel_topology:legacy_multi_pi_two_round
+  chair_role_ref: task_role:chair
+  peer_memo_visibility: anonymized
+  high_stakes_triggers:
+    - universal
+    - universally
+    - generally dominant
+    - architecture-independent
+    - obsolete
+    - breakthrough
+    - claimed cross-scale law
+    - declared retired
+    - paper-level
+  modes:
+    mini:
+      - task_role:builder_pi
+      - task_role:skeptic_pi
+    full:
+      - task_role:builder_pi
+      - task_role:skeptic_pi
+      - task_role:portfolio_pi
+    high_stakes:
+      - task_role:builder_pi
+      - task_role:skeptic_pi
+      - task_role:portfolio_pi
+      - task_role:external_validity_pi
+  roles:
+    - role_id: builder
+      legacy_role_id: builder
+      role_ref: task_role:builder_pi
+      role_kind: pi
+      model_profile_ref: strong_reasoner
+      private_pack_key: builder
+    - role_id: skeptic
+      legacy_role_id: skeptic
+      role_ref: task_role:skeptic_pi
+      role_kind: pi
+      model_profile_ref: strong_reasoner
+      private_pack_key: skeptic
+    - role_id: portfolio
+      legacy_role_id: portfolio
+      role_ref: task_role:portfolio_pi
+      role_kind: pi
+      model_profile_ref: strong_reasoner
+      private_pack_key: portfolio
+    - role_id: external_validity
+      legacy_role_id: external_validity
+      role_ref: task_role:external_validity_pi
+      role_kind: pi
+      model_profile_ref: strong_reasoner
+      private_pack_key: external_validity
+  visibility:
+    evidence_freeze: shared
+    independent_memos: private_pack
+    cross_review: anonymized_peer_memos
+    chair_synthesis: shared_core_and_memos
+  rounds:
+    - round_id: evidence_freeze
+      role_refs: []
+      parallelism: 1
+      timeout_seconds: 0
+      visibility: shared
+    - round_id: independent_memos
+      role_refs:
+        - task_role:builder_pi
+        - task_role:skeptic_pi
+        - task_role:portfolio_pi
+        - task_role:external_validity_pi
+      parallelism: 4
+      timeout_seconds: 720
+      model_profile_ref: strong_reasoner
+      visibility: private_pack
+    - round_id: cross_review
+      role_refs:
+        - task_role:builder_pi
+        - task_role:skeptic_pi
+        - task_role:portfolio_pi
+        - task_role:external_validity_pi
+      parallelism: 4
+      timeout_seconds: 540
+      model_profile_ref: strong_reasoner
+      visibility: anonymized_peer_memos
+    - round_id: chair_synthesis
+      role_refs:
+        - task_role:chair
+      parallelism: 1
+      timeout_seconds: 1500
+      model_profile_ref: strong_reasoner
+      visibility: shared_core_and_memos
+code: []
+assets: []

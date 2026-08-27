@@ -1,0 +1,30 @@
+schema_version: 1
+name: arxiv
+kind: tool_server
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Provider-agnostic arxiv search + metadata MCP tools — Atom-XML over the public arxiv API (#128).
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - tool_server.arxiv
+  - tool.arxiv_search
+  - tool.arxiv_get
+  - tool.arxiv_recent
+tool_server:
+  server_name: arxiv
+  tool_names:
+    - arxiv_search
+    - arxiv_get
+    - arxiv_recent
+  visibility:
+    - peer
+    - panel
+  required_capability: tool_server.arxiv
+entrypoint: adapter:create_tool_plugin
+code:
+  - adapter.py
+assets: []

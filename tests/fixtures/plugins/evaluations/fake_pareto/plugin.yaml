@@ -1,0 +1,17 @@
+schema_version: 1
+name: fake_pareto
+kind: evaluation
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Deterministic fake ranking strategy.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - evaluation.rank
+entrypoint: evaluator:create_evaluation
+code:
+  - evaluator.py
+assets: []

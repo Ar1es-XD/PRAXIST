@@ -1,0 +1,27 @@
+{
+  "variant_id": "rocket_booster_recovery_v2_first_contact_7000kg_baseline",
+  "display_name": "Rocket Booster Recovery v2 powered-first-contact 7000 kg baseline",
+  "method_class": "deterministic_classical_control",
+  "changed_modules": [],
+  "parent_variant_id": null,
+  "design_dimensions": {
+    "mechanism_family": "analytic_composite_baseline",
+    "intervention_surface": "none_baseline_control",
+    "intent": "control",
+    "semantic_family": "rocket_booster_recovery_v2_powered_first_contact",
+    "parent_lineage": "frozen_baseline",
+    "novelty_axis": "no_post_contact_damping_credit"
+  },
+  "provenance": {
+    "source_controller": "../../../src/rocket_booster_recovery_controller.py",
+    "source_config": "../../../configs/rocket_booster_recovery_v0_frozen_formal.json",
+    "source_controller_sha256": "d37c0b094e4f59e257f6d6ce613d2c38ba283a2ff2824cee4eb0ed218855de82",
+    "source_config_sha256": "452fdd8e46d72deae2a31aa7a942b11335ed3712c1a2f23465f3819593fec1f2",
+    "copied_without_semantic_change": true,
+    "task_owner_changes": [
+      "fixed initial fuel at 7000 kg",
+      "removed pre-contact low-thrust gear-sink phase",
+      "kept powered vertical corridor active through first leg contact"
+    ]
+  }
+}

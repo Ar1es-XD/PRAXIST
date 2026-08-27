@@ -1,0 +1,74 @@
+{
+  "schema": "rocket_booster_recovery.baseline_remeasurement.v1",
+  "purpose": "Complete baseline remeasurement after repository auxiliary success-code alignment to the v2 single first-contact predicate.",
+  "measured_utc": "2026-08-23T14:18:10Z",
+  "measurement_platform": {
+    "host_class": "gpu_server",
+    "host_gpu_inventory": "8 x NVIDIA H100 80GB HBM3",
+    "evaluator_gpu_model": "NVIDIA H100 80GB HBM3",
+    "evaluator_gpu_count": 1,
+    "jax_backend": "gpu",
+    "jax_version": "0.9.2",
+    "python": "3.11.15",
+    "batch_size": 1024,
+    "personal_computer_measured": false
+  },
+  "protocol": {
+    "name": "rocket_booster_recovery_first_contact_7000kg_private_validation_v2",
+    "mode": "complete",
+    "landing_units": 12288,
+    "roll_units": 1024,
+    "total_units": 13312,
+    "initial_fuel_kg": 7000.0,
+    "success_metric": "landing_success_rate",
+    "only_success_standard": true,
+    "post_contact_damping_credit": false
+  },
+  "measured_metrics": {
+    "landing_success_count": 495,
+    "landing_success_rate": 0.040283203125,
+    "landing_success_wilson_95_low": 0.036947959247708835,
+    "landing_success_wilson_95_high": 0.043905789326106996,
+    "first_contact_rate": 1.0,
+    "vertical_first_contact_gate_pass_rate": 0.11417643229166667,
+    "hard_ood_landing_success_rate": 0.0,
+    "worst_radius_bin_landing_success_rate": 0.0,
+    "fuel_gate_pass_rate": 0.07584635416666667,
+    "fuel_depletion_rate": 0.8863932291666666,
+    "first_contact_sink_speed_p95_mps": 66.39284553527833,
+    "first_contact_leg_sink_speed_p95_mps": 66.39873809814453,
+    "roll_stable_rate": 1.0,
+    "forbidden_action_max_abs": 0.0,
+    "plant_lateral_rcs_max_nm": 0.0,
+    "nonfinite_trajectory_rate": 0.0
+  },
+  "integrity": {
+    "passed": true,
+    "contract_lock_passed": true,
+    "frozen_assets_attested": true,
+    "outcome_dependent_selection": false,
+    "forbidden_learning_methods_detected": false,
+    "single_success_standard": true,
+    "post_contact_damping_credit_forbidden": true
+  },
+  "artifact_sha256": {
+    "controller.py": "d37c0b094e4f59e257f6d6ce613d2c38ba283a2ff2824cee4eb0ed218855de82",
+    "controller_config.json": "452fdd8e46d72deae2a31aa7a942b11335ed3712c1a2f23465f3819593fec1f2",
+    "variant.json": "39558e6230ef447b06c2dcf1e9c932170088babc056344d3d70a7e5cee2e34f5",
+    "evaluator.py": "d27e7acb323da68dd49efa34c4f93c29da3b4e299db9312b63f6ecfb6b66c88f",
+    "operational_metrics.py": "31d2982404ce6378ee64ee9a485a5032d8eb846084bc3ace730628643bda216d",
+    "operational_rollout.py": "3302a1fa793fb899bcc59b5f8309507e19afc9ff7045d0cc3ae73de73c8f0b90",
+    "raw_evaluation_summary.json": "12b485c901b6733340f49703e23ff5d38114ac6daf29ddb0a674923eded61249"
+  },
+  "comparison_to_canonical_record": {
+    "landing_success_count_exact_match": true,
+    "landing_success_rate_exact_match": true,
+    "all_reported_scientific_metrics_exact_match": true,
+    "protocol_and_artifact_hashes_match": true
+  },
+  "execution": {
+    "elapsed_seconds": 25.089651681482792,
+    "raw_runtime_output": "task_GPU_server/experiments/baseline_remeasurement_20260823_v2_final/evaluation_summary.json",
+    "raw_runtime_output_retention": "local ignored runtime artifact; digest retained above"
+  }
+}

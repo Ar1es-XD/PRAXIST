@@ -1,0 +1,62 @@
+## Generation {{ gen_id }} research context
+
+The task's immutable protocol and role skill remain authoritative.
+
+{% if research_agenda is mapping and research_agenda %}
+### PI/Chair agenda
+
+{% set mo = research_agenda.mainline_observation or {} %}
+- Dominant mechanisms: {{ mo.current_dominant_mechanisms or [] }}
+- Main risk: {{ mo.main_risk or "unspecified" }}
+- Key tradeoff: {{ mo.key_tradeoff or "unspecified" }}
+
+{% set my_contract = (research_agenda.peer_contracts or {}).get(peer_id) %}
+{% if my_contract %}
+### Your contract
+
+- Role: `{{ my_contract.role }}`
+- Objective: {{ my_contract.target_hypothesis or "choose a task-aligned objective" }}
+- Success signal: {{ my_contract.success_signal or "publish evaluator-backed evidence" }}
+- Planned dimensions: {{ my_contract.planned_dimensions or {} }}
+
+`planned_dimensions` are allocation intent only. Your `variant.json` and
+result must report the actual implemented values under `design_dimensions`;
+never copy planned values when implementation differs or is missing.
+{% endif %}
+{% elif frontier_summary %}
+### Frontier context
+
+{% for entry in frontier_summary %}
+- Gen {{ entry.generation_id }} #{{ entry.rank }}: {{ entry.variant_name }};
+  primary={{ entry.metric_value }}
+{% endfor %}
+{% else %}
+### First generation
+
+No prior run evidence exists. Use measured baseline failure modes and the
+gen0-only DIG/QD contract. Prefer constructive work; at most three of sixteen
+slots are diagnostic. Preserve one-module attribution in the first round.
+{% endif %}
+
+{% if incubator_top_k is defined and incubator_top_k %}
+### Parentable incubator signals
+
+These are complete, clean Pareto/new-high parents, even when they do not pass
+the stricter confirmed promotion gate. Select them only when their mechanism
+fits your hypothesis.
+{% for entry in incubator_top_k %}
+- `{{ entry.variant_name|default("?") }}` lane={{ entry.frontier_lane|default("?") }}
+  metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }}
+{% endfor %}
+{% endif %}
+
+{% if validation_candidates is defined and validation_candidates %}
+### Revalidation-only signals
+
+{% for entry in validation_candidates %}
+- `{{ entry.variant_name|default("?") }}`: {{ entry.recommended_next_step|default("complete_validation") }}
+{% endfor %}
+{% endif %}
+
+The configured constructive target is 0.75. A constructive peer must leave a
+runnable candidate and evaluator evidence; pure discussion does not count.

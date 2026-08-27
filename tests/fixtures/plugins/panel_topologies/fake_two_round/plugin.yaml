@@ -1,0 +1,49 @@
+schema_version: 1
+name: fake_two_round
+kind: panel_topology
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Two-round deterministic fake topology.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - topology.two_round
+  - retry.fake
+topology:
+  topology_ref: panel_topology:fake_two_round
+  chair_role_ref: role:fake_chair
+  peer_memo_visibility: public
+  modes:
+    mini:
+      - role:fake_pi
+    full:
+      - role:fake_pi
+    high_stakes:
+      - role:fake_pi
+  roles:
+    - role_id: fake_pi
+      legacy_role_id: fake_pi
+      role_ref: role:fake_pi
+      role_kind: pi
+      model_profile_ref: fake_fast
+      private_pack_key: fake_pi
+  rounds:
+    - round_id: draft_memo
+      role_refs:
+        - role:fake_pi
+      parallelism: 1
+      timeout_seconds: 5
+      model_profile_ref: fake_fast
+      visibility: shared
+    - round_id: chair_synthesis
+      role_refs:
+        - role:fake_chair
+      parallelism: 1
+      timeout_seconds: 5
+      model_profile_ref: fake_fast
+      visibility: shared
+code: []
+assets: []

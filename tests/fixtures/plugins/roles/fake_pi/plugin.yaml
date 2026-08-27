@@ -1,0 +1,17 @@
+schema_version: 1
+name: fake_pi
+kind: role
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Deterministic fake PI audit role.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - role.skill
+  - audit.verdict
+code: []
+assets:
+  - skill.md

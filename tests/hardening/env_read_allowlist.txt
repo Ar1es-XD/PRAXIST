@@ -1,0 +1,196 @@
+# Allowlist of env-var reads under praxist/{core,plugins,infrastructure}.
+#
+# Format:   <path>::<var_name>  [# optional reason]
+# Comments and blank lines are ignored. ``<dynamic>`` is the sentinel
+# the audit uses when the env-var name isn't a string literal.
+#
+# Discipline: core domain code does NOT read env vars; reads happen at
+# boundaries (CLI entrypoints, subprocess env construction, MCP stdio
+# subprocesses). New code that needs an env value must either route it
+# through ``RunConfig`` or earn an explicit entry here, with reason.
+#
+# Every entry names a current process or adapter boundary. Remove an entry when
+# its owner stops reading that value directly.
+
+# ---------------------------------------------------------------------------
+# Boundary: praxist/core
+# ---------------------------------------------------------------------------
+# ``role_skills`` receives the task path at the subprocess boundary;
+# in-process callers pass task_project_path explicitly.
+praxist/core/role_skills.py::PRAXIST_TASK_PROJECT_PATH
+# ``registry`` dynamically reads the bundled and external plugin roots.
+praxist/core/registry.py::<dynamic>
+# ``execution_guards`` exposes both environment and RunConfig constructors at
+# the execution boundary.
+praxist/core/execution_guards.py::PRAXIST_BUDGET_GRANT_ID
+praxist/core/execution_guards.py::PRAXIST_BUDGET_REQUEST_ID
+praxist/core/execution_guards.py::PRAXIST_RUN_DIR
+praxist/core/execution_guards.py::PRAXIST_RUN_ID
+praxist/core/execution_guards.py::PRAXIST_STAGE_ID
+
+# ---------------------------------------------------------------------------
+# Boundary: praxist/infrastructure (subprocess / launcher)
+# ---------------------------------------------------------------------------
+# ``execute_autonomous`` is the documented Peer subprocess entrypoint.
+# Reads are gathered into ``PeerInvocationConfig.from_environ``.
+praxist/infrastructure/execute_autonomous.py::PRAXIST_RUN_DIR
+praxist/infrastructure/execute_autonomous.py::RUN_DIR
+# ``upload_final_artifacts`` reads S3 / LOGS_DIR env at the subprocess
+# boundary; ``config.X`` re-exports are the literal fallback.
+praxist/infrastructure/execute_autonomous.py::LOGS_DIR
+praxist/infrastructure/execute_autonomous.py::S3_BUCKET
+praxist/infrastructure/execute_autonomous.py::S3_RESULTS_PREFIX
+# ``runpod`` is the external RunPod orchestrator entry; the API key
+# is its credential.
+praxist/infrastructure/runpod.py::RUNPOD_API_KEY
+# ``s3_utils.get_s3_client`` reads AWS credentials / region / endpoint
+# from the environment at function-call time. Empty values
+# fall back to ``praxist.config`` re-exports so tests can patch.
+praxist/infrastructure/s3_utils.py::AWS_ACCESS_KEY_ID
+praxist/infrastructure/s3_utils.py::AWS_REGION
+praxist/infrastructure/s3_utils.py::AWS_SECRET_ACCESS_KEY
+praxist/infrastructure/s3_utils.py::S3_ENDPOINT_URL
+
+# ---------------------------------------------------------------------------
+# Boundary: agent_runtime adapters (subprocess construction)
+# ---------------------------------------------------------------------------
+# claude_sdk: optional override flag for Claude Code setting source paths.
+praxist/plugins/agent_runtimes/claude_sdk/adapter.py::PRAXIST_CLAUDE_SETTING_SOURCES
+# claude_sdk delete_guard: subprocess-shell wrapper construction reads PATH /
+# PYTHONPATH and guard env names at the runtime boundary.
+praxist/plugins/agent_runtimes/claude_sdk/delete_guard.py::<dynamic>
+praxist/plugins/agent_runtimes/claude_sdk/delete_guard.py::PATH
+praxist/plugins/agent_runtimes/claude_sdk/delete_guard.py::PYTHONPATH
+# codex_sdk: app-server and relay subprocess construction inspect the
+# process environment only at this runtime boundary.
+praxist/plugins/agent_runtimes/codex_sdk/_auth.py::PRAXIST_CODEX_BIN
+praxist/plugins/agent_runtimes/codex_sdk/_relay.py::<dynamic>
+praxist/plugins/agent_runtimes/codex_sdk/adapter.py::<dynamic>
+# BRAVE_API_KEY is the search-provider credential read at the
+# legitimate boundary read for the search-provider adapter.
+praxist/plugins/tools/brave_search/adapter.py::BRAVE_API_KEY
+# The PDF reader resolves its OCR cache root here. PRAXIST_STATE_DIR and
+# XDG_DATA_HOME are deployment-config env vars; reading them here is the
+# documented boundary.
+praxist/plugins/tools/pdf_reader/adapter.py::PRAXIST_STATE_DIR
+praxist/plugins/tools/pdf_reader/adapter.py::XDG_DATA_HOME
+
+# ---------------------------------------------------------------------------
+# Boundary: MCP tool servers (subprocess entrypoints)
+# ---------------------------------------------------------------------------
+# These run in their own process; env is the contract from the
+# parent runtime. Reads here ARE the boundary.
+praxist/plugins/tools/evaluation_tools/adapter.py::<dynamic>
+praxist/plugins/tools/frontier_tools/adapter.py::PRAXIST_FRONTIER_ALLOW_UNBOUNDED
+praxist/plugins/tools/frontier_tools/adapter.py::PRAXIST_GENERATION_ID
+praxist/plugins/tools/frontier_tools/adapter.py::COMPLETED_GEN_ID
+praxist/plugins/tools/frontier_tools/adapter.py::CURRENT_GEN_ID
+praxist/plugins/tools/frontier_tools/adapter.py::FRONTIER_DIR
+praxist/plugins/tools/frontier_tools/adapter.py::GENERATION_ID
+praxist/plugins/tools/frontier_tools/adapter.py::LAST_COMPLETED_GENERATION_ID
+praxist/plugins/tools/memory_tools/__main__.py::PRAXIST_RUN_DIR
+praxist/plugins/tools/memory_tools/__main__.py::RUN_DIR
+praxist/plugins/tools/memory_tools/adapter.py::PRAXIST_GENERATION_ID
+praxist/plugins/tools/memory_tools/adapter.py::PRAXIST_MEMORY_TOOLS_ALLOW_UNBOUNDED
+praxist/plugins/tools/memory_tools/adapter.py::COMPLETED_GEN_ID
+praxist/plugins/tools/memory_tools/adapter.py::CURRENT_GEN_ID
+praxist/plugins/tools/memory_tools/adapter.py::GENERATION_ID
+praxist/plugins/tools/memory_tools/adapter.py::LAST_COMPLETED_GENERATION_ID
+# ``_mcp_stdio`` is the codex-spawn equivalent of the per-plugin
+# ``__main__`` entries; it reads PRAXIST_RUN_DIR / RUN_DIR for factories
+# that require a run_dir (currently just ``create_memory_tools_server``).
+praxist/plugins/tools/_mcp_stdio.py::PRAXIST_RUN_DIR
+praxist/plugins/tools/_mcp_stdio.py::RUN_DIR
+praxist/plugins/tools/prior_work_tools/adapter.py::S3_BUCKET
+praxist/plugins/tools/prior_work_tools/adapter.py::WORKSPACE_DIR
+praxist/plugins/tools/result_envelope.py::<dynamic>
+praxist/plugins/tools/system/adapter.py::PRAXIST_WORKSPACE
+
+# ---------------------------------------------------------------------------
+# Boundary: graph_maintainers / finding_graph_mvp viz cache
+# ---------------------------------------------------------------------------
+praxist/plugins/graph_maintainers/finding_graph_mvp/viz.py::LOCAL_STORE_DIR
+praxist/plugins/graph_maintainers/finding_graph_mvp/viz.py::PRAXIST_VIZ_CACHE
+
+# ---------------------------------------------------------------------------
+# Boundary: research_loop backend
+# ---------------------------------------------------------------------------
+# These reads configure peer subprocesses and run-scoped backend adapters.
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::<dynamic>
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_AGENT_RUNTIME_REF
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_CREDENTIAL_MODE
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_GEMS_CYCLE
+# Launch guard opt-in is bridged at the agent runtime boundary so task runs
+# can explicitly enable/disable protected child-process enforcement.
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_LAUNCH_GUARD_ENABLED
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_LOGICAL_GENERATION_ID
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_MODEL_CREDENTIAL_KEY_ID
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_MODEL_PROVIDER_REF
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_RUN_DIR
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_RUN_ID
+# BaseAgent.__init__ reads the S3 bucket and results prefix at its subprocess
+# boundary. config.S3_* re-exports are the literal fallback so
+# tests that patch ``config.S3_BUCKET`` continue to work.
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::S3_BUCKET
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::S3_RESULTS_PREFIX
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_STAGE_ID
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_TASK_RUNTIME_ENV_KEYS
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::PRAXIST_WORKSPACE_ROOT
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::DEEPSEEK_ANTHROPIC_BASE_URL
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::DEEPSEEK_API_KEY
+praxist/plugins/workflow_stages/research_loop/backend/agent.py::RUN_ID
+praxist/plugins/workflow_stages/research_loop/backend/baseline_cache.py::PRAXIST_BASELINE_CACHE_DIR
+praxist/plugins/workflow_stages/research_loop/backend/experiment_scheduler_client.py::<dynamic>
+# Run-local supply lease identity is consumed by the scheduler client boundary.
+praxist/plugins/workflow_stages/research_loop/backend/experiment_scheduler_client.py::GENERATION_ID
+praxist/plugins/workflow_stages/research_loop/backend/gpu_governor.py::<dynamic>
+praxist/plugins/workflow_stages/research_loop/backend/hooks/sync_to_s3.py::LOGS_DIR
+praxist/plugins/workflow_stages/research_loop/backend/hooks/sync_to_s3.py::PEER_ID
+praxist/plugins/workflow_stages/research_loop/backend/hooks/sync_to_s3.py::RUN_ID
+praxist/plugins/workflow_stages/research_loop/backend/hooks/sync_to_s3.py::S3_BUCKET
+praxist/plugins/workflow_stages/research_loop/backend/hooks/sync_to_s3.py::S3_RESULTS_PREFIX
+# PI prompt builders accept a runtime reference at this boundary.
+praxist/plugins/workflow_stages/research_loop/backend/prompt_artifacts.py::PRAXIST_RUN_ID
+praxist/plugins/workflow_stages/research_loop/backend/protected_pids.py::<dynamic>
+# The scheduler-owned child-process boundary verifies both halves of the
+# existing attempt READY/GO handshake before permitting nested evaluation.
+praxist/plugins/workflow_stages/research_loop/backend/protected_pids.py::PRAXIST_EXPERIMENT_ATTEMPT_DIR
+praxist/plugins/workflow_stages/research_loop/backend/protected_pids.py::PRAXIST_EXPERIMENT_ATTEMPT_ID
+praxist/plugins/workflow_stages/research_loop/backend/telemetry/tool_timing.py::LOGS_DIR
+praxist/plugins/workflow_stages/research_loop/backend/telemetry/usage_tracker.py::LOGS_DIR
+praxist/plugins/workflow_stages/research_loop/backend/tools/http_utils.py::ORCHESTRATOR_API_URL
+praxist/plugins/workflow_stages/research_loop/backend/tools/http_utils.py::SERVER_URL
+# local_store is the run-local tool store boundary. PRAXIST_RUN_DIR /
+# AUTO_RESEARCH_RUN_DIR are fallback aliases used only when the subprocess
+# missed LOCAL_STORE_DIR, preventing metrics/findings from splitting into /tmp.
+praxist/plugins/workflow_stages/research_loop/backend/tools/local_store.py::PRAXIST_RUN_DIR
+praxist/plugins/workflow_stages/research_loop/backend/tools/local_store.py::AUTO_RESEARCH_RUN_DIR
+praxist/plugins/workflow_stages/research_loop/backend/tools/local_store.py::LOCAL_STORE_DIR
+praxist/plugins/workflow_stages/research_loop/legacy_output_materializer.py::LOCAL_STORE_DIR
+
+# ---------------------------------------------------------------------------
+# Boundary: research_loop stage / startup (subprocess env construction)
+# ---------------------------------------------------------------------------
+# stage.py reads provider API keys + base URLs to build the
+# per-subprocess env dict for codex_sdk / codex-relay child processes.
+# These are documented subprocess-builder reads.
+praxist/plugins/workflow_stages/research_loop/stage.py::<dynamic>
+praxist/plugins/workflow_stages/research_loop/stage.py::ANTHROPIC_API_KEY
+praxist/plugins/workflow_stages/research_loop/stage.py::ANTHROPIC_AUTH_TOKEN
+praxist/plugins/workflow_stages/research_loop/stage.py::ANTHROPIC_BASE_URL
+praxist/plugins/workflow_stages/research_loop/stage.py::ANTHROPIC_DEFAULT_HAIKU_MODEL
+praxist/plugins/workflow_stages/research_loop/stage.py::ANTHROPIC_DEFAULT_OPUS_MODEL
+praxist/plugins/workflow_stages/research_loop/stage.py::ANTHROPIC_DEFAULT_SONNET_MODEL
+praxist/plugins/workflow_stages/research_loop/stage.py::ANTHROPIC_MODEL
+praxist/plugins/workflow_stages/research_loop/stage.py::CLAUDE_CODE_EFFORT_LEVEL
+praxist/plugins/workflow_stages/research_loop/stage.py::CLAUDE_CODE_SUBAGENT_MODEL
+praxist/plugins/workflow_stages/research_loop/stage.py::DEEPSEEK_ANTHROPIC_BASE_URL
+praxist/plugins/workflow_stages/research_loop/stage.py::DEEPSEEK_API_KEY
+praxist/plugins/workflow_stages/research_loop/stage.py::OPENAI_API_KEY
+praxist/plugins/workflow_stages/research_loop/stage.py::OPENROUTER_API_KEY
+praxist/plugins/workflow_stages/research_loop/stage.py::OPENROUTER_BASE_URL
+# startup.py reads PATH for subprocess env construction.
+praxist/plugins/workflow_stages/research_loop/startup.py::ANTHROPIC_API_KEY
+praxist/plugins/workflow_stages/research_loop/startup.py::DEEPSEEK_API_KEY
+praxist/plugins/workflow_stages/research_loop/startup.py::OPENROUTER_API_KEY
+praxist/plugins/workflow_stages/research_loop/startup.py::PATH

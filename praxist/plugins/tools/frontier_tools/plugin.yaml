@@ -1,0 +1,28 @@
+schema_version: 1
+name: frontier_tools
+kind: tool_server
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Existing frontier MCP tools for leaderboard and frontier lookup.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - tool_server.frontier_tools
+  - tool.frontier_lookup
+  - tool.leaderboard
+tool_server:
+  server_name: frontier-tools
+  tool_names:
+    - get_frontier
+  visibility:
+    - peer
+    - panel
+  required_capability: tool_server.frontier_tools
+entrypoint: adapter:create_tool_plugin
+code:
+  - adapter.py
+  - __main__.py
+assets: []

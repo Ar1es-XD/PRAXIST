@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "date_utc": "2026-08-24",
+  "host": {
+    "cpu_model": "Intel(R) Xeon(R) Platinum 8457C",
+    "logical_cpus_visible": 168,
+    "os": "linux",
+    "architecture": "x86_64"
+  },
+  "protocol": {
+    "name": "rocket_booster_recovery_first_contact_7000kg_validation_v2",
+    "mode": "complete",
+    "trajectories": 12288,
+    "success_count_all_runs": 495
+  },
+  "python_jax_cpu": {
+    "python_version": "3.11.15",
+    "jax_version": "0.9.2",
+    "numpy_version": "2.4.6",
+    "batch_size": 1024,
+    "elapsed_seconds": 23.179468696005642,
+    "block_seconds": [
+      4.587334342300892,
+      1.6448265463113785,
+      1.6464628661051393,
+      1.6439991518855095,
+      1.6361123798415065,
+      1.6334076533094049,
+      1.6472005611285567,
+      1.646394219249487,
+      1.6365701481699944,
+      1.6468753600493073,
+      1.6304759187623858,
+      1.624057749286294
+    ],
+    "peak_resident_memory_kb": 822320,
+    "environment": {
+      "CUDA_VISIBLE_DEVICES": "",
+      "JAX_PLATFORMS": "cpu"
+    }
+  },
+  "rust_cpu_16_threads": {
+    "rust_version": "1.98.0",
+    "threads": 16,
+    "elapsed_seconds": 1.911213754,
+    "rollout_seconds": 1.851159442,
+    "peak_resident_memory_kb": 10976,
+    "speedup_over_python_jax_cpu": 12.1281403755
+  },
+  "rust_cpu_auto": {
+    "rust_version": "1.98.0",
+    "threads": 168,
+    "elapsed_seconds": 0.348981044,
+    "rollout_seconds": 0.288040604,
+    "peak_resident_memory_kb": 7460,
+    "speedup_over_python_jax_cpu": 66.4204233855
+  },
+  "python_jax_gpu_committed_reference": {
+    "gpu_inventory": "8x NVIDIA H100 visible; one default JAX GPU used without sharding",
+    "elapsed_seconds": 20.506496253423393,
+    "first_compile_and_run_block_seconds": 10.631034347228706,
+    "later_block_seconds_approx": 0.364
+  },
+  "notes": [
+    "Evaluation timing excludes Cargo compilation.",
+    "The first JAX block includes JIT compilation; later blocks show warmed throughput.",
+    "Memory and timing are host-specific measurements, not cross-machine guarantees."
+  ]
+}

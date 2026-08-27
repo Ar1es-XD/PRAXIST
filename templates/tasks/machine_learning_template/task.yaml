@@ -1,0 +1,326 @@
+schema_version: 1
+task_version: 0.1.0
+task_id: machine_learning_template
+task_name: "General Machine Learning Task Template"
+description_file: description.md
+capabilities:
+  - task.machine_learning_template
+  - task.template
+  - task.ml_template
+
+research_direction: |
+  Replace this section with the machine learning objective, available data,
+  prediction artifact format, public evaluator contract, hard constraints,
+  and high-value research directions for the target project.
+
+  The default template goal is to produce better evaluated prediction artifacts
+  while preserving mature results, partial validation evidence, and diagnostics
+  through Praxist findings and frontier lanes.
+
+prompt_layout:
+  base_template: prompt_base.jinja2
+  generation_template: prompt_generation.jinja2
+
+evaluation:
+  primary_metric: task_score
+  direction: maximize
+  aux_metrics: []
+  seeds: [42]
+  aggregation: mean_and_std
+  # Demonstration default only. The adapted task must follow the user's
+  # protocol-intent table, including any explicitly authoritative reduced mode.
+  maturity_policy:
+    min_effort_ratio: 0.75
+    min_coverage_ratio: 0.80
+    require_ratio_gate: true
+    complete_stage_labels: [complete]
+    preliminary_stage_labels: [preliminary, aligned]
+  constructive_peer_mix_enabled: true
+  constructive_target_ratio: 0.75
+  launch_guard:
+    enabled: true
+    # Observed p90 runtimes; close-grade is the protocol authorized to satisfy
+    # normal close and its estimate*safety must fit plus drain.
+    estimated_heavy_eval_minutes: 20
+    estimated_close_grade_eval_minutes: 20
+    safety_factor: 1.25
+  # Replace raw-primary-only confirmed axes with confidence/lower-bound,
+  # variance, risk, constraint, or Pareto axes when the domain ranking
+  # convention requires robust ordering.
+  # Rewrite these stages when user intent differs; their names have no global
+  # launch, ranking, maturity, parent, or close semantics.
+  staged_protocols:
+    - name: preliminary
+      maturity: validation_signal
+      purpose: "Default fast wiring, failure, and impossible-idea triage; replace these permissions from the user-owned protocol intent."
+      aligned_with_full_protocol: false
+    - name: aligned
+      maturity: validation_signal
+      purpose: "Promotion-aligned intermediate ranking signal before complete evaluation."
+      aligned_with_full_protocol: true
+      requirement: "Same evaluator path, metric direction, aggregation, invalid-result rules, and leakage checks as complete evaluation; preserve same or near-complete evaluation-unit coverage and save compute mainly by reducing fixed training/optimization budget."
+    - name: complete
+      maturity: mature
+      purpose: "Complete task protocol and final parent-promotion gate."
+      aligned_with_full_protocol: true
+  # PI/Chair plans these axes; findings report actual values in design_dimensions.
+  diversity_dimensions:
+    - name: mechanism_family
+      description: "Broad model or method family, such as tree models, neural nets, linear models, retrieval, feature engineering, calibration, or ensembling."
+    - name: intervention_surface
+      description: "Where the peer changes the system: data cleaning, feature representation, model, objective, validation, calibration, ensembling, postprocessing, or evaluator interface."
+    - name: intent
+      description: "Research purpose such as explore, exploit, bridge, repair, falsify, ablate, diagnose, or control."
+    - name: semantic_family
+      description: "Task-owned grouping used to avoid many findings saying the same thing with different names."
+    - name: parent_lineage
+      description: "Baseline, starter, frontier entry, Gem, prior prediction family, or independent lineage."
+    - name: novelty_axis
+      description: "What makes the work meaningfully new rather than a small retune."
+  # Default profile: the task-local evaluator emits `performance` for ordinary
+  # clean results authorized for durable selection; confirmed and incubator
+  # independently select that source. Adapt all filters to explicit user intent.
+  frontier_lanes:
+    - name: confirmed
+      description: "Prediction artifacts satisfying the task-authorized mature evaluator protocol on the primary metric."
+      k: 4
+      cumulative_cap: 16
+      axes:
+        - {name: task_score, direction: maximize}
+      include_lanes: [confirmed, performance]
+      parent_eligible: true
+      require_metrics: [task_score]
+      require_truthy_metrics: [scored_complete]
+      allow_missing_tier: true
+    - name: incubator
+      description: "Lower-admission durable long-term prediction-artifact library for task-authorized, protocol-passed, non-suspect Pareto/new-high candidates that need follow-up before clean confirmation."
+      k: 8
+      cumulative_cap: 48
+      admit_new_high: true
+      axes:
+        - {name: task_score, direction: maximize}
+      optional_axes:
+        - {name: secondary_tiebreak_metric, direction: maximize}
+        - {name: diagnostic_display_metric, direction: minimize}
+      include_lanes: [incubator, performance]
+      require_metrics: [task_score]
+      require_truthy_metrics: [scored_complete]
+      require_falsey_metrics: [protocol_integrity_failed, is_smoke_eval, partial, scout_only, validation_only, validation_only_result, late_after_generation_boundary, suspect_protocol, suspect_leakage]
+      parent_eligible: true
+      allow_non_promotable: true
+      allow_missing_tier: true
+      allow_risk_violating: true
+    - name: task_candidate
+      description: "Promising preliminary, aligned, repair, partial-validation, or analysis evidence retained for follow-up."
+      k: 6
+      cumulative_cap: 24
+      axes:
+        - {name: task_score, direction: maximize}
+      include_lanes: [task_candidate, candidate, preliminary, aligned, partial, repair]
+      parent_eligible: false
+      allow_lower_tier: true
+      allow_non_promotable: true
+      allow_missing_tier: true
+    - name: diagnostic
+      description: "Controls, falsifiers, negative evidence, invalid-output diagnostics, and process observations."
+      k: 3
+      cumulative_cap: 12
+      axes:
+        - {name: task_score, direction: maximize}
+      include_lanes: [diagnostic, control, process, reference, negative_control]
+      parent_eligible: false
+      allow_lower_tier: true
+      allow_non_promotable: true
+      allow_missing_tier: true
+
+compute_budget:
+  # Unknown until task initialization observes the unchanged baseline.
+  per_experiment_gpu_hours: 0
+  resource_scheduler:
+    # Replace with measured central settings during task initialization.
+    # A template must not invent an accelerator profile before observation.
+    mode: legacy
+
+task_entrypoints:
+  evaluation:
+    command: evaluations/primary/run.py
+    output_policy: "write compact evaluator summaries under runtime_outputs.root; keep raw logs out of Praxist core"
+    purpose: "Single public task-owned evaluator entrypoint for prediction artifacts."
+
+runtime_outputs:
+  root: experiments
+  gitignored: true
+  policy: "All run outputs, generated variants, results, logs, and task-local evaluation artifacts stay under this task-owned directory."
+
+runtime_environment:
+  protected_child_paths:
+    - assets
+    - evaluations
+    - audit_rules
+  writable_roots:
+    - scratch
+
+generation_policy:
+  cohort_size: 8
+  max_generations: 20
+  per_generation_hours: 2.0
+  promote_top_k: 4
+  promote_criterion: primary_metric
+
+synthesis_trigger:
+  enabled: true
+  min_findings: 12
+  min_interval_minutes: 30
+  max_interval_minutes: 90
+  min_contributing_peers: 3
+  mature_quorum_fraction: 0.25  # mature evidence gates normal close
+  poll_interval_seconds: 30
+  adaptive:
+    drain_grace_minutes: 5
+
+research_memory:
+  enabled: true
+  rollout_phase: 2
+  evidence_pack_max_cards: 40
+  citation_coverage_min: 0.95
+  negative_evidence_ratio_min: 0.20
+  bridge_coverage_check_required: true
+
+multi_pi:
+  enabled: true
+  panel_mode_default: full
+  auto_escalate_to_high_stakes: true
+  pi_max_runtime_minutes: 12
+  chair_max_runtime_minutes: 25
+  chair_peer_budget: 8
+  shared_core_ratio_target: 0.65
+  private_kb_ratio_target: 0.35
+  fallback_to_single_pi_on_panel_failure: true
+
+dig_lite:
+  enabled: true
+  generation_scope: initial_only
+  phase: pre_code_only
+  experiments_allowed: false
+  shell_allowed: false
+  code_writes_allowed: false
+  result_writes_allowed: false
+  candidate_count: 8
+  min_mechanism_families: 4
+  min_intervention_surfaces: 3
+  max_refinement_rounds: 1
+  max_attempts: 10
+  max_total_runtime_minutes: 40
+  fallback_to_direct_on_failure: true
+  planner_allowed_tools:
+    - Read
+    - Grep
+    - Glob
+  planner_max_runtime_minutes: 10
+  strict: true
+  inject_contract_into_prompt: true
+  diversity:
+    cell_fields:
+      - mechanism_family
+      - intervention_surface
+      - intent
+    selection: best_within_lane
+    reject_near_duplicate: true
+    duplicate_threshold: 0.82
+    allow_adjacent_lane_fallback: true
+  innovation:
+    enabled: true
+    enforce_forward_slots: true
+    max_diagnostic_fraction: 0.20
+    max_diagnostic_peers: 2
+  contract:
+    require_selected_contract: true
+    require_ablation_hooks: true
+    min_rejected_alternatives: 3
+    require_forbidden_changes: true
+    require_expected_metric_signature: true
+    require_fail_fast_checks: true
+  write_gate:
+    enabled: true
+    allow_writes_only_under_dig_dir_before_unlock: true
+    block_shell_before_unlock: true
+    block_variant_dir_before_unlock: true
+    block_results_dir_before_unlock: true
+
+quality_diversity:
+  enabled: true
+  initial_generation_enabled: true
+  later_generations_enabled: true
+  max_same_diversity_cell_peers: 1
+  max_same_mechanism_family_fraction: 0.34
+  max_same_intervention_surface_fraction: 0.50
+  max_same_intent_fraction: 0.60
+
+gems:
+  enabled: false
+  selection_policy: mature_evidence_top_k
+  # Placeholder for this non-runnable template. Replace with the number of
+  # evaluation units required by the protocol authorized for Gems/parent use.
+  min_mature_eval_units: 1
+  evidence_stage_min_units:
+    complete: 1
+  max_resets: 3
+  max_gems_per_reset: 4
+  max_gems_total: 4
+  max_gems_per_family: 2
+  min_frontier_entries: 1
+  archive_ordinary_findings: true
+  prompt_max_gems: 4
+  include_lanes:
+    - confirmed
+    - performance
+    - incubator
+  result_artifact_default_lane: task_candidate
+  result_artifact_default_family: ml_prediction_artifact
+  bottleneck_detector_mode: generic
+
+agent:
+  premium_mode: false
+  reasoning_effort: max
+
+praxist_plugins:
+  task_ref: task:machine_learning_template
+  workflow:
+    stage: workflow_stage:research_loop
+  panel:
+    topology: panel_topology:machine_learning_template
+    roles:
+      - task_role:peer_generalist
+      - task_role:starter
+      - task_role:solver
+      - task_role:analyst
+      - task_role:builder_pi
+      - task_role:skeptic_pi
+      - task_role:portfolio_pi
+      - task_role:external_validity_pi
+      - task_role:chair
+    optional_roles:
+      literature_scout:
+        role: task_role:literature_scout
+        tool_server_ref: tool_server:literature_lookup
+        enabled: false
+        note: "Policy template only. Runtime lookup access is provided by the active tool_server:literature_lookup entry below; keep this optional role disabled unless the task topology implements optional-role execution. Current-environment-only: do not download new datasets or install new dependencies from lookup results."
+  audit_rules:
+    - task_audit:scope_and_evidence
+  evaluations:
+    - task_evaluation:primary
+  tools:
+    - tool_server:evaluation_tools
+    - tool_server:frontier_tools
+    - tool_server:finding_graph_query
+    - tool_server:memory_tools
+    - tool_server:prior_work_tools
+    - tool_server:run_report
+    - tool_server:literature_lookup
+  graph_maintainers:
+    - graph_maintainer:finding_graph_mvp
+  optional_workflow_stages:
+    ideation: workflow_stage:ideation_stub
+    paper_writing: workflow_stage:paper_writing_stub
+    # Disabled-by-default local artifact/provenance reviewer; audit-only.
+    reviewer: workflow_stage:reviewer_stub

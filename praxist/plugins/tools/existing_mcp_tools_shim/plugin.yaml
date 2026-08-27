@@ -1,0 +1,19 @@
+schema_version: 1
+name: existing_mcp_tools_shim
+kind: tool_server
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Compatibility shim for existing evaluation/frontier/finding-graph/memory/prior-work MCP tool servers.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - tool_server.evaluation_tools
+  - tool_server.frontier_tools
+  - tool_server.finding_graph_query
+  - tool_server.memory_tools
+  - tool_server.prior_work_tools
+code: []
+assets: []

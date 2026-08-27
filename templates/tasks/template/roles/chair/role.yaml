@@ -1,0 +1,30 @@
+schema_version: 1
+name: template_chair
+kind: role
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Chair role template that merges PI memos into the next-generation agenda.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - role.skill
+  - chair.agenda
+  - chair.claim_downgrade
+role:
+  role_id: chair
+  legacy_role_id: chair
+  display_name: Chair Template
+  role_kind: chair
+  default_model_profile_ref: strong_reasoner
+  output_schema_ref: core:research_agenda.v1
+  tool_scope:
+    - filesystem.read
+    - memory_tools.panel_read
+    - frontier_tools.panel_read
+    - finding_graph_query.panel_read
+code: []
+assets:
+  - skill.md

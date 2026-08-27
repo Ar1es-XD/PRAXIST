@@ -1,0 +1,153 @@
+site_name: Praxist
+site_description: Install, operate, understand, and extend the Praxist autonomous research system.
+site_url: https://praxist.sapient.inc/en/docs
+repo_url: https://github.com/sapientinc/praxist
+repo_name: Praxist on GitHub
+edit_uri: ""
+docs_dir: docs
+site_dir: site
+strict: true
+use_directory_urls: false
+exclude_docs: |
+  site/**
+
+theme:
+  name: material
+  language: en
+  logo: Praxist.svg
+  favicon: assets/brand/praxist-mark.svg
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra_javascript:
+  - assets/javascripts/page-morphicons.mjs
+
+extra:
+  generator: false
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - .
+          options:
+            docstring_style: google
+            members_order: source
+            show_bases: true
+            show_if_no_docstring: false
+            show_source: false
+            show_root_full_path: false
+            show_root_heading: true
+            show_signature_annotations: true
+            separate_signature: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quickstart: getting-started/quickstart.md
+      - Your First Task: getting-started/first-task.md
+  - Using Praxist:
+      - Agent Skills: user-guide/skills.md
+      - Task Projects: guides/task-projects.md
+      - Examples And Templates: guides/examples-and-templates.md
+      - Rocket Booster Recovery: examples/rocket-booster-recovery.md
+      - Rocket Booster Recovery (Rust): examples/rocket-booster-recovery-rust.md
+      - Direct CLI Operations: guides/operators.md
+      - Run Reports: guides/user-facing-reports-and-init.md
+      - Cost Estimation: guides/costs.md
+  - Research System:
+      - Architecture: concepts/architecture.md
+      - Research Loop: guides/research-loop-variant-generation-flow.md
+      - Flexibility Controls: guides/research-loop-flexibility-controls.md
+      - Deep Innovation Gate: guides/deep-innovation-gate.md
+      - Quality-Diversity Allocation: guides/qdig-cohort-allocator.md
+      - Peer Memory: guides/peer-local-structured-memory-long-context.md
+      - Panel Topology Prompts: concepts/panel_topology_prompts.md
+      - Central Experiment Scheduler: guides/central-resource-scheduler.md
+      - Scientific Literature Lookup: guides/scientific-literature-lookup.md
+  - Operations:
+      - Troubleshooting: operations/troubleshooting.md
+      - Platform Support: operations/platform-support.md
+      - Product Usage Controls: operations/product-usage.md
+      - Product Usage Technical Documentation: operations/DOCUMENTATION.md
+      - Agent Runtimes: guides/agent-runtimes.md
+      - Open-Source Model APIs: guides/open-source-model-apis.md
+      - Model Providers: guides/model-providers.md
+      - Credentials: guides/credentials.md
+      - Cost Optimization: guides/cost-optimization.md
+      - Workflow Stages: guides/workflow-stages.md
+      - Tool Servers: guides/tool-servers.md
+      - Budget Policies: guides/budget-policies.md
+  - Developer Guide:
+      - Agent OOBE Runbook: agents/oobe-install.md
+      - Contributing: guides/contributing.md
+      - Configuration Discipline: concepts/config_discipline.md
+      - Runtime Model: concepts/runtime-model.md
+      - Generic Plugins: guides/plugins.md
+      - Research Topology Audit API: guides/research-topology-and-module-api.md
+  - Reference:
+      - CLI: reference/cli.md
+      - Skills: reference/skills.md
+      - Core: reference/core.md
+      - Plugins: reference/plugins.md
+      - Operator APIs: reference/cli-and-operators.md
+      - Task Templates: reference/task-templates.md
+  - About:
+      - Glossary: about/glossary.md
+      - User Agreement: legal/user-agreement.md
+      - Privacy Notice: legal/PRIVACY.md
+      - User Data Collection Notice: legal/product-usage-data-notice.md
+      - Documentation Policy: about/documentation.md
+      - Legacy Migration: guides/legacy-migration.md

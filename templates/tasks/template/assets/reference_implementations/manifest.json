@@ -1,0 +1,10 @@
+{
+  "schema_version": "praxist.reference_implementations.v1",
+  "source": "task-template placeholder",
+  "variant_count": 0,
+  "entrypoint_contract": {
+    "policy": "replace with the task's reference implementation contract"
+  },
+  "variant_dirs": [],
+  "raw_results_policy": "do not commit live run outputs"
+}

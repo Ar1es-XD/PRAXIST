@@ -1,0 +1,31 @@
+schema_version: 1
+name: claude_sdk
+kind: agent_runtime
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Claude SDK runtime adapter with AgentRunRequest execution, legacy BaseAgent compatibility, and redacted transcript conformance.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - runtime.claude_sdk
+  - runtime.agent_run_request
+  - runtime.executable_legacy_adapter
+  - runtime.mock_transcript_conformance
+runtime:
+  execution_modes:
+    - native_agent_run_request
+    - legacy_base_agent_compat
+  compatible_model_providers:
+    - model_provider:anthropic_messages
+    - model_provider:openrouter
+    - model_provider:deepseek_alias
+  cache_strategy: runtime_auto_cache
+  event_schema: praxist.agent_event.v1
+  usage_reporting: usage_or_usage_unknown
+entrypoint: adapter:create_runtime
+code:
+  - adapter.py
+assets: []

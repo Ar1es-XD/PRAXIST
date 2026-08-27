@@ -1,0 +1,26 @@
+schema_version: 1
+name: paper_writing_stub
+kind: workflow_stage
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Disabled-by-default paper writing workflow stub.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - workflow.stub
+  - workflow.optional
+contracts:
+  enabled_by_default: false
+  inputs:
+    - findings
+    - frontier
+    - trajectory
+    - budget_ledger
+  outputs:
+    - manuscript_artifact
+  artifact_schema: core:manuscript_stub.v1
+code: []
+assets: []

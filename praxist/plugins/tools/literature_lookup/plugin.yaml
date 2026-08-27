@@ -1,0 +1,42 @@
+schema_version: 1
+name: literature_lookup
+kind: tool_server
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Generic no-key public literature/database/open-access lookup tools for peers, PI panels, and task-local scout roles.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - tool_server.literature_lookup
+  - tool.literature
+  - tool.literature_search
+  - tool.literature_resolve
+  - tool.literature_source_guide
+  - tool.literature_open_access_text
+  - tool.scientific_database_search
+contracts:
+  enabled_by_default: true
+  evidence_schema: core:literature_evidence.v1
+  credential_scope: none
+  role_scope: task_project
+tool_server:
+  server_name: literature-lookup
+  tool_names:
+    - literature_search
+    - literature_resolve
+    - literature_source_guide
+    - literature_open_access_text
+    - scientific_database_search
+  visibility:
+    - peer
+    - panel
+  required_capability: tool_server.literature_lookup
+  enabled_by_default: true
+entrypoint: adapter:create_tool_plugin
+code:
+  - adapter.py
+  - __main__.py
+assets: []

@@ -1,0 +1,34 @@
+# gen71_pod3 C05 follow-up candidate (solver H_g71_02): whole-disk throttle-tail
+# + terminal gear settle-rate lever. READ-ONLY documentation; evaluator / data
+# split / metric / disk_radius / 9-dim action interface untouched.
+
+contract:
+  selected_candidate_id: C05
+  pod_id: gen71_pod3
+  followup_hypothesis: H_g71_02
+  mechanism_family: terminal_settle_rate_lever
+  intervention_surface: gear_bottom_out_spring_cap
+  intent: bridge   # close residual far-outer never-touch hover, keep fuel-positivity
+
+candidate_arm:
+  # whole-disk throttle-tail (identical to C05 diagnostic across integrators)
+  SWORDFISH_FUEL_TAIL_ON: "1"
+  SWORDFISH_FUEL_TAIL_LATERAL_GATE_M: "2.9"
+  SWORDFISH_FUEL_TAIL_MAX_INITIAL_R: "1500.0"
+  # terminal settle-rate lever
+  SWORDFISH_GEAR_BOTTOM_OUT_FORCE_FRAC: "0.90"
+
+protocol:
+  mode: T5_jiang
+  seeds: [42, 43, 44, 45, 46]
+  held_out_seeds: [501, 502, 503, 504, 505]
+  updates: 200
+  num_envs: 128
+  num_steps: 256
+  eval_trajectories: 1024
+  disk_radius_m: 1500.0
+  integrators: ["rk4", "rk2_full"]
+  substeps: 1   # canonical dt for promotion
+
+baseline:
+  SWORDFISH_GEAR_BOTTOM_OUT_FORCE_FRAC: "0.95"   # C05 diagnostic baseline

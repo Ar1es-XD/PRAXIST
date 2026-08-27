@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "state_columns": [
+    "x_m",
+    "y_m",
+    "z_m",
+    "vx_mps",
+    "vy_mps",
+    "vz_mps",
+    "q_w",
+    "q_x",
+    "q_y",
+    "q_z",
+    "omega_x",
+    "omega_y",
+    "omega_z",
+    "mass_kg",
+    "time_s",
+    "initial_r_m"
+  ],
+  "banks": {
+    "nominal_unseen": {
+      "path": "data/source_banks/nominal_unseen_40960.npz",
+      "rows": 40960,
+      "sha256": "674d119f8f0cd36c2553f0cc9134ec23886fd00d1a34396d515d957132311a3d",
+      "empirical_initial_radius_m": [7.006027698516846, 1499.9996337890625],
+      "empirical_initial_vertical_velocity_mps": [-75.0, -75.0]
+    },
+    "near_ood": {
+      "path": "data/source_banks/near_ood_easy_velocity_40960.npz",
+      "rows": 40960,
+      "sha256": "d35803608dd3dedbbd4db76d9b39aebe37c2eedbdba4ad9ec0dcd94a690d7730",
+      "empirical_initial_radius_m": [7.006027698516846, 1499.9996337890625],
+      "empirical_initial_vertical_velocity_mps": [-73.4997329711914, -69.0000228881836]
+    },
+    "hard_ood": {
+      "path": "data/source_banks/hard_ood_fast_outer_annulus_40960.npz",
+      "rows": 40960,
+      "sha256": "55d3e0054ef5d225b78f6558a4e15a3a908bedb84daabb7cc66b8e6579fd297c",
+      "empirical_initial_radius_m": [1500.0096435546875, 1649.9952392578125],
+      "empirical_initial_vertical_velocity_mps": [-80.99993133544922, -76.50004577636719]
+    }
+  },
+  "development": {
+    "path": "data/development_ood_2048.npz",
+    "rows": 2048,
+    "sha256": "00539ee4e538fab8a65e82ae737289e5b42aa9dfae70da9da1cec5e7c8871f94"
+  },
+  "complete_evaluation": {
+    "rows_per_bank": 4096,
+    "rows_total": 12288,
+    "nominal_seed": 20260822,
+    "near_hard_seed": 20260821,
+    "near_hard_permutation_slice": [9216, 13312],
+    "outcome_dependent_selection": false,
+    "initial_mass_override_kg": 29200.0,
+    "materialized_row_selection": {
+      "path": "data/complete_source_rows_le_i32.bin",
+      "format": "little-endian signed i32",
+      "sha256": "4f7ab2fcdefdf7adfcb6f9a4528e9eb53019a4323e0a606f68e5ba98505b80bc",
+      "canonical_rows_sha256": "2694073419a116a12c611f8e952cf399b0a2172ea0c93aa8c6bac36ceee9b78c"
+    }
+  }
+}

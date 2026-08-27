@@ -1,0 +1,103 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guardrails:
+    name: guardrails (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Pin Python
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Sync dev dependencies
+        run: uv sync --group dev --extra product-usage-server
+
+      - name: ruff check
+        run: uv run ruff check praxist/ tests/
+
+      - name: ruff format --check
+        run: uv run ruff format --check praxist/ tests/
+
+      - name: pyrefly
+        run: uv run pyrefly check
+
+      - name: pytest tests/unit
+        run: uv run pytest tests/unit --tb=short -q
+
+      - name: coverage unit profile
+        run: uv run python scripts/run_test_coverage.py unit --fail-under 90 --fail-under-statements 95
+
+      - name: coverage integration profile
+        run: uv run python scripts/run_test_coverage.py integration
+
+  rust-example:
+    name: rust example
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/rocket_booster_recovery_rust
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: clippy
+        run: cargo clippy --workspace --all-targets --locked --offline -- -D warnings
+
+      - name: Workspace tests
+        run: cargo test --release --workspace --locked --offline
+
+      - name: Portable harness tests
+        run: |
+          cargo fmt --manifest-path task_linux/Cargo.toml -- --check
+          cargo clippy --manifest-path task_linux/Cargo.toml --all-targets --locked --offline -- -D warnings
+          cargo test --release --manifest-path task_linux/Cargo.toml --locked --offline
+          cargo fmt --manifest-path task_macos/Cargo.toml -- --check
+          cargo clippy --manifest-path task_macos/Cargo.toml --all-targets --locked --offline -- -D warnings
+          cargo test --release --manifest-path task_macos/Cargo.toml --locked --offline
+
+      - name: Complete reference
+        run: cargo test --release --locked --offline --test full_reference -- --ignored
+
+      - name: Complete Praxist baseline
+        run: |
+          cargo run --release --locked --offline \
+            --manifest-path task_GPU_server/Cargo.toml \
+            --bin rocket-booster-recovery-task-eval -- \
+            --variant-dir task_GPU_server/assets/baseline \
+            --mode complete \
+            --output-dir /tmp/rocket-booster-recovery-rust-ci \
+            --threads 2
+          grep -q '"landing_success_count": 495' \
+            /tmp/rocket-booster-recovery-rust-ci/evaluation_summary.json
+          grep -q '"evaluation_units_completed": 13312' \
+            /tmp/rocket-booster-recovery-rust-ci/evaluation_summary.json

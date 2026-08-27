@@ -1,0 +1,4 @@
+interface:
+  display_name: "Praxist Control"
+  short_description: "Start, stop, resume, monitor, and inspect Praxist runs safely"
+  default_prompt: "Use $praxist-control to validate or discover a Praxist task project, confirm the exact task path before start, verify its evidence-gated closing policy, start or resume and report the independent `praxist --monitor --run-id <run_id>` foreground TUI command, stop only the intended run, open the read-only TUI on request, use plain monitor output only for non-interactive or append-friendly text, or report run status, including generation progress, score curves, incubator/leaderboard performance, report paths, hardware load, peer activity, and interrupted PI panel or Gems reset boundaries."

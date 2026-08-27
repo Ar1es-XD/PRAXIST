@@ -1,0 +1,281 @@
+schema_version: 1
+task_version: 0.1.0
+task_id: toy_math
+task_name: "Toy Math Conjecture Search"
+description_file: description.md
+capabilities:
+  - task.toy_math
+  - task.template_cross_domain
+  - testing.fake_workflow_fixture
+runner:
+  entrypoint: runner:create_task_runner
+
+research_direction: |
+  Explore simple integer-sequence conjectures. A peer proposes a candidate
+  identity or counterexample pattern, another checks it over a bounded search
+  range, and the chair promotes the clearest deterministic finding.
+
+evaluation:
+  primary_metric: deterministic_score
+  direction: maximize
+  aux_metrics:
+    - proof_clarity
+    - counterexample_coverage
+  seeds: [1, 2, 3]
+  aggregation: mean_and_std
+  maturity_policy:
+    min_effort_ratio: 0.75
+    min_coverage_ratio: 0.80
+    require_ratio_gate: true
+    complete_stage_labels: [complete]
+    preliminary_stage_labels: [preliminary, aligned]
+  constructive_peer_mix_enabled: false
+  constructive_target_ratio: 0.75
+  launch_guard:
+    enabled: true
+    # Use observed p90 runtimes. The close-grade estimate is for the protocol
+    # authorized to satisfy normal close; estimate*safety must fit plus drain.
+    estimated_heavy_eval_minutes: 0
+    estimated_close_grade_eval_minutes: 0
+    safety_factor: 1.25
+  # PI/Chair plans these axes; findings report actual values in design_dimensions.
+  diversity_dimensions:
+    - name: mechanism_family
+      description: "Conjecture, invariant, search heuristic, proof sketch, counterexample generator, or verification method family."
+    - name: intervention_surface
+      description: "Where the variant acts: sequence generator, bounded checker, proof explanation, counterexample search, scoring, or diagnostic analysis."
+    - name: intent
+      description: "Research purpose such as explore, exploit, bridge, repair, falsify, ablate, or control."
+    - name: semantic_family
+      description: "Mathematical topic or pattern family, such as recurrence, divisibility, parity, modular arithmetic, or growth-rate behavior."
+    - name: parent_lineage
+      description: "Baseline fixture, prior conjecture family, frontier candidate, Gem, or independent lineage."
+    - name: novelty_axis
+      description: "The new reasoning axis: stronger bound, broader search regime, clearer proof, new counterexample class, or better diagnostic."
+  # Expanded real evaluators should emit `performance` for ordinary clean
+  # complete results so both parent-eligible target lanes remain reachable.
+  frontier_lanes:
+    - name: confirmed
+      description: "Fully scored, promotable conjecture or verification candidates."
+      k: 3
+      cumulative_cap: 10
+      axes:
+        - {name: deterministic_score, direction: maximize}
+      include_lanes: [confirmed, performance]
+      require_metrics: [deterministic_score]
+      parent_eligible: true
+      allow_missing_tier: true
+    - name: incubator
+      description: "Lower-admission durable long-term conjecture library for complete protocol-passed non-suspect Pareto/new-high candidates that need follow-up before confirmation."
+      k: 8
+      cumulative_cap: 48
+      admit_new_high: true
+      axes:
+        - {name: deterministic_score, direction: maximize}
+        - {name: proof_clarity, direction: maximize}
+        - {name: counterexample_coverage, direction: maximize}
+      include_lanes: [incubator, performance]
+      require_metrics: [deterministic_score]
+      require_falsey_metrics: [is_smoke_eval, partial, scout_only, validation_only, validation_only_result, late_after_generation_boundary, suspect_protocol, suspect_leakage]
+      parent_eligible: true
+      allow_non_promotable: true
+      allow_missing_tier: true
+      allow_risk_violating: true
+    - name: task_candidate
+      description: "Promising preliminary conjectures, aligned bounded checks, repairs, or partial evidence retained for follow-up."
+      k: 5
+      cumulative_cap: 20
+      axes:
+        - {name: deterministic_score, direction: maximize}
+      include_lanes: [task_candidate, candidate]
+      require_metrics: [deterministic_score]
+      parent_eligible: false
+      allow_lower_tier: true
+      allow_non_promotable: true
+      allow_missing_tier: true
+    - name: diagnostic
+      description: "Counterexamples, falsifiers, controls, and process diagnostics."
+      k: 2
+      cumulative_cap: 10
+      axes:
+        - {name: deterministic_score, direction: maximize}
+      include_lanes: [diagnostic, control, process, reference, negative_control]
+      parent_eligible: false
+      allow_lower_tier: true
+      allow_non_promotable: true
+      allow_missing_tier: true
+
+compute_budget:
+  per_experiment_gpu_hours: 0
+  max_parallel_runs_per_peer: 1
+  resource_scheduler:
+    mode: central
+    initial_concurrent_experiments: 3
+    min_concurrent_experiments: 1
+    max_concurrent_experiments: 3
+    supply_signal_enabled: true
+    supply_idle_samples: 3
+    supply_lease_seconds: 600
+    mature_supply_fraction: 0.25
+    mature_supply_redundancy: 3.0
+    mature_assessment_min_completion_probability: 0.25
+    default_profile: cpu_eval
+    profiles:
+      cpu_eval:
+        accelerator: cpu
+        pressure_domains: [cpu, memory]
+
+task_entrypoints:
+  evaluation:
+    command: evaluations/pareto_tiered/run.py
+    output_policy: "write compact summaries under runtime_outputs.root; keep raw task logs out of Praxist core"
+    purpose: "Single public task-owned evaluation entrypoint for the toy fixture."
+
+runtime_outputs:
+  root: experiments
+  gitignored: true
+  policy: "All run outputs, generated variants, results, logs, and task-local evaluation artifacts stay under this task-owned directory."
+
+runtime_environment:
+  protected_child_paths:
+    - assets
+    - evaluations
+    - audit_rules
+
+generation_policy:
+  # Offline fixture default. Real research tasks should normally use a larger
+  # value, but periodic Gems reset is opt-in after plateau diagnosis.
+  max_generations: 1
+  cohort_size: 3
+  per_generation_hours: 5
+
+synthesis_trigger:
+  enabled: true
+  min_findings: 2
+  min_interval_minutes: 5
+  max_interval_minutes: 240
+  min_contributing_peers: 1
+  mature_quorum_fraction: 0.25  # mature evidence gates normal close
+  adaptive:
+    drain_grace_minutes: 5
+
+dig_lite:
+  enabled: true
+  generation_scope: initial_only
+  phase: pre_code_only
+  experiments_allowed: false
+  shell_allowed: false
+  code_writes_allowed: false
+  result_writes_allowed: false
+  candidate_count: 8
+  min_mechanism_families: 4
+  min_intervention_surfaces: 3
+  max_refinement_rounds: 1
+  max_attempts: 10
+  max_total_runtime_minutes: 40
+  fallback_to_direct_on_failure: true
+  planner_allowed_tools:
+    - Read
+    - Grep
+    - Glob
+  planner_max_runtime_minutes: 10
+  strict: true
+  inject_contract_into_prompt: true
+  diversity:
+    cell_fields:
+      - mechanism_family
+      - intervention_surface
+      - intent
+    selection: best_within_lane
+    reject_near_duplicate: true
+    duplicate_threshold: 0.82
+    allow_adjacent_lane_fallback: true
+  innovation:
+    enabled: true
+    enforce_forward_slots: true
+    max_diagnostic_fraction: 0.20
+    max_diagnostic_peers: 1
+  contract:
+    require_selected_contract: true
+    require_ablation_hooks: true
+    min_rejected_alternatives: 3
+    require_forbidden_changes: true
+    require_expected_metric_signature: true
+    require_fail_fast_checks: true
+  write_gate:
+    enabled: true
+    allow_writes_only_under_dig_dir_before_unlock: true
+    block_shell_before_unlock: true
+    block_variant_dir_before_unlock: true
+    block_results_dir_before_unlock: true
+
+quality_diversity:
+  enabled: true
+  initial_generation_enabled: true
+  later_generations_enabled: false
+  min_distinct_mechanism_families: 2
+  min_distinct_intervention_surfaces: 2
+  max_same_diversity_cell_peers: 1
+  max_same_mechanism_family_peers: 2
+  max_same_intervention_surface_fraction: 0.67
+  max_same_intent_fraction: 0.67
+
+gems:
+  enabled: false
+  selection_policy: mature_evidence_top_k
+  min_mature_eval_units: 1
+  evidence_stage_min_units:
+    complete: 1
+  max_resets: 3
+  max_gems_per_reset: 4
+  max_gems_total: 4
+  max_gems_per_family: 2
+  min_frontier_entries: 1
+  archive_ordinary_findings: true
+  prompt_max_gems: 4
+  include_lanes:
+    - confirmed
+    - performance
+    - incubator
+  result_artifact_default_lane: task_candidate
+  result_artifact_default_family: toy_math_candidate
+  bottleneck_detector_mode: generic
+
+agent:
+  premium_mode: false
+  reasoning_effort: max
+
+praxist_plugins:
+  task_ref: task:toy_math
+  workflow:
+    stage: workflow_stage:research_loop
+  panel:
+    topology: panel_topology:fake_two_round
+    roles:
+      - role:fake_peer
+      - role:fake_pi
+      - role:fake_chair
+    optional_roles:
+      literature_scout:
+        role: task_role:literature_scout
+        tool_server_ref: tool_server:literature_lookup
+        enabled: false
+        note: "Policy template only. Runtime lookup access is provided by the active tool_server:literature_lookup entry below; keep this optional role disabled unless the task topology implements optional-role execution. Current-environment-only: do not download new datasets or install new dependencies from lookup results."
+  audit_rules:
+    - audit_rule:fake_panel_audit
+  evaluations:
+    - evaluation:fake_pareto
+  tools:
+    - tool_server:evaluation_tools
+    - tool_server:frontier_tools
+    - tool_server:finding_graph_query
+    - tool_server:memory_tools
+    - tool_server:prior_work_tools
+    - tool_server:run_report
+    - tool_server:literature_lookup
+  graph_maintainers: []
+  optional_workflow_stages:
+    ideation: workflow_stage:ideation_stub
+    paper_writing: workflow_stage:paper_writing_stub
+    # Disabled-by-default local artifact/provenance reviewer; audit-only.
+    reviewer: workflow_stage:reviewer_stub

@@ -1,0 +1,25 @@
+schema_version: 1
+name: fake_runtime
+kind: agent_runtime
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Offline deterministic runtime adapter.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - runtime.mock
+runtime:
+  execution_modes:
+    - sync_transcript
+  compatible_model_providers:
+    - model_provider:fake_provider
+  cache_strategy: deterministic_no_cache
+  event_schema: praxist.agent_event.v1
+  usage_reporting: no_provider_usage
+entrypoint: adapter:create_runtime
+code:
+  - adapter.py
+assets: []

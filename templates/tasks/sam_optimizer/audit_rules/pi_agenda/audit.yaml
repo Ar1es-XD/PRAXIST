@@ -1,0 +1,44 @@
+schema_version: 1
+name: pi_agenda
+kind: task_audit
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+mode: declarative
+description: Declarative SAM PI/Chair agenda criteria for claim grounding, peer contracts, and next-generation planning.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+dependencies: []
+capabilities:
+  - audit.agenda_schema
+  - audit.claim_boundary
+  - audit.peer_contracts
+  - audit.negative_evidence_floor
+  - audit.coverage_matrix_bridge_check
+  - audit.chair_no_new_claims
+audit:
+  checks:
+    - id: agenda_schema
+      severity: blocking
+      criteria:
+        - Chair output should contain an actionable next-generation plan or equivalent prioritized agenda.
+        - Agenda items should identify target hypotheses, evidence needs, and expected evaluation tier.
+    - id: claim_boundary
+      severity: blocking
+      criteria:
+        - PI and Chair conclusions must be grounded in peer findings, benchmarks, graph guidance, or explicitly cited prior work.
+        - Chair synthesis must not introduce unsupported new empirical claims.
+    - id: peer_contracts
+      severity: warning
+      criteria:
+        - Assigned peer work should stay inside the task scope and expected budget envelope.
+        - Expensive proposals should request budget review instead of being silently discarded.
+    - id: negative_evidence_floor
+      severity: warning
+      criteria:
+        - Failed, neutral, or contradictory results should be preserved in the agenda context.
+    - id: coverage_matrix_bridge_check
+      severity: warning
+      criteria:
+        - The agenda should connect promising optimizer mechanisms to missing coverage, dataset, or ablation evidence.
+assets: []

@@ -1,0 +1,25 @@
+schema_version: 1
+name: research_loop
+kind: workflow_stage
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Required research loop workflow stage.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - workflow.research_loop
+  - workflow.synthesis_trigger
+  - workflow.stop_signal_drain
+  - workflow.experiment_survival_guards
+entrypoint: stage:create_stage
+code:
+  - stage.py
+  - startup.py
+  - c5_materializer.py
+  - backend/**/*.py
+assets:
+  - backend/**/*.jinja2
+  - backend/**/*.md

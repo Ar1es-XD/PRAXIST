@@ -1,0 +1,4 @@
+interface:
+  display_name: "Praxist Interactive Task Init"
+  short_description: "Confirmation-first Praxist task initialization"
+  default_prompt: "Use $praxist-interactive-task-init to create a Praxist task through a short confirmation-first workflow that treats the user's protocol permissions as authoritative, then aligns metric ranking, maturity, generation closing, and incubator/Pareto retention with those decisions."

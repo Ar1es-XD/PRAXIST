@@ -1,0 +1,437 @@
+## Generation Context
+
+You are in **Generation {{ gen_id }}** of a multi-generation research cycle.
+
+{% if gems_context is defined and gems_context.enabled and gems_context.gem_seeded_baseline_mode %}
+### Gem-Seeded Baseline Mode
+
+This generation is a **Gems Restart Mode** generation. Durable Gems are implementation parents and research anchors; the original task baseline remains a performance reference, not the default implementation parent. Do not force every peer to inherit the same Gem. Preserve independent exploration, recombination, repair, and falsification slots.
+
+{% endif %}
+
+{# R2#27 fix: only render the agenda block if it parsed as a dict. The
+   load_agenda_for_gen path now also normalizes to dict-or-None, but the
+   Jinja `is mapping` test makes this template robust to any future caller
+   that passes raw YAML / list / str. #}
+{% if research_agenda is mapping and research_agenda %}
+{% set agenda_source_gen = research_agenda.synthesized_from_gen if research_agenda.synthesized_from_gen is defined else "unknown" %}
+### 🎯 Research Agenda from PI (synthesized from gen {{ agenda_source_gen }})
+
+The PI / Synthesizer agent reviewed all of the previous generation's findings and produced a cohort agenda. This is your peer-local agenda slice. **You have an explicit role contract — follow it.**
+{% if research_agenda.full_agenda_path is defined and research_agenda.full_agenda_path %}
+Full cohort agenda artifact: `{{ research_agenda.full_agenda_path }}`
+{% endif %}
+
+#### Mainline observation (PI's read of where the field stands)
+
+{% set mo = research_agenda.mainline_observation if research_agenda.mainline_observation is defined and research_agenda.mainline_observation else {} %}
+{% set dominant_mechanisms = mo.current_dominant_mechanisms if mo.current_dominant_mechanisms is defined else [] %}
+{% set main_risk = mo.main_risk if mo.main_risk is defined and mo.main_risk else "(unspecified)" %}
+{% set key_tradeoff = mo.key_tradeoff if mo.key_tradeoff is defined and mo.key_tradeoff else "(unspecified)" %}
+- **Currently dominant mechanisms**: {{ dominant_mechanisms }}
+- **Main risk**: {{ main_risk }}
+- **Key trade-off**: {{ key_tradeoff }}
+
+#### Your peer contract (`{{ peer_id }}`)
+
+{% set peer_contracts = research_agenda.peer_contracts if research_agenda.peer_contracts is defined and research_agenda.peer_contracts else {} %}
+{% set my_contract = peer_contracts.get(peer_id) %}
+{% if my_contract %}
+{% set my_role = my_contract.role if my_contract.role is defined else "" %}
+{% set target_hypothesis = my_contract.target_hypothesis if my_contract.target_hypothesis is defined and my_contract.target_hypothesis else "(none)" %}
+{% set source_lane = my_contract.source_lane if my_contract.source_lane is defined else "" %}
+{% set target_lane = my_contract.target_lane if my_contract.target_lane is defined else "" %}
+{% set coverage_check = my_contract.coverage_check if my_contract.coverage_check is defined else "" %}
+{% set required_controls = my_contract.required_controls if my_contract.required_controls is defined else [] %}
+{% set mechanism_deliverable = my_contract.mechanism_hypothesis_deliverable if my_contract.mechanism_hypothesis_deliverable is defined else "" %}
+{% set forbidden_actions = my_contract.forbidden_actions if my_contract.forbidden_actions is defined else [] %}
+{% set success_signal = my_contract.success_signal if my_contract.success_signal is defined and my_contract.success_signal else "(unspecified)" %}
+{% set rendered_contract_fields = [
+  "role",
+  "target_hypothesis",
+  "source_lane",
+  "target_lane",
+  "coverage_check",
+  "required_controls",
+  "mechanism_hypothesis_deliverable",
+  "planned_dimensions",
+  "forbidden_actions",
+  "success_signal",
+] %}
+- **Role**: `{{ my_role }}`
+- **Target hypothesis**: `{{ target_hypothesis }}`
+{% if source_lane or target_lane %}
+- **Lane intent**: source=`{{ source_lane }}`, target=`{{ target_lane }}`
+{% endif %}
+{% if coverage_check %}
+- **Coverage check**: {{ coverage_check }}
+{% endif %}
+{% if required_controls %}
+- **Required controls** (HARD controls): {% for rc in required_controls %}
+  - {{ rc }}{% endfor %}
+{% endif %}
+{% if mechanism_deliverable %}
+- **Mechanism hypothesis deliverable**: {{ mechanism_deliverable }}
+{% endif %}
+{% if research_agenda.current_peer_source_context is defined and research_agenda.current_peer_source_context %}
+- **Source context**:
+{% for section_name, section_items in research_agenda.current_peer_source_context.items() %}
+  - `{{ section_name }}`: {{ section_items }}
+{% endfor %}
+{% endif %}
+{% if forbidden_actions %}
+- **Forbidden actions** (HARD constraints): {% for fa in forbidden_actions %}
+  - {{ fa }}{% endfor %}
+{% endif %}
+- **Success signal**: {{ success_signal }}
+{% if my_contract.planned_dimensions is defined %}
+
+#### Planned versus realized diversity dimensions
+
+- **`planned_dimensions`**: {{ my_contract.planned_dimensions | tojson }}
+- `planned_dimensions` is pre-execution allocation intent from the PI. It is a
+  plan, never evidence that the implementation achieved those values.
+- **Realized / `design_dimensions`** must describe the actual implementation
+  and evaluation evidence. Report the values you really implemented, even when
+  they differ from the plan; never copy `planned_dimensions` into
+  `design_dimensions` merely to claim alignment.
+{% if diversity_dimensions is defined and diversity_dimensions %}
+- **Configured dimension definitions**:
+{% for dimension in diversity_dimensions %}
+  - `{{ dimension.name | default("dimension") }}`: {{ dimension.description | default("") }}{% if dimension.examples is defined and dimension.examples %} Examples: {{ dimension.examples }}{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% set extra_contract_items = [] %}
+{% for field_name, field_value in my_contract.items() %}
+{% if field_name not in rendered_contract_fields and field_value %}
+{% set _ = extra_contract_items.append((field_name, field_value)) %}
+{% endif %}
+{% endfor %}
+{% if extra_contract_items %}
+- **Additional peer-specific contract fields**:
+{% for field_name, field_value in extra_contract_items %}
+  - `{{ field_name }}`: {{ field_value | tojson }}
+{% endfor %}
+{% endif %}
+
+### ⚠️ Role contract is binding
+
+Your role contract OVERRIDES any default instructions from the broader task prompt. In particular:
+
+{% if effective_config_provenance_available|default(false) %}An exact-replication label requires the evaluator to publish a complete
+`effective_config`, the parent's
+`replication_of_effective_config_sha256`, and a resulting
+`replication_effective_config_status: matched`. Copying code without the
+parent's effective configuration is a control or code-only rerun, not an exact
+replication. This provenance rule does not block ordinary experiments.
+
+{% endif %}{% include "prompt_generation_role_description.jinja2" %}
+
+**Tag every published finding** with `extra={"peer_role": "{{ my_role }}", "target_hypothesis": "{{ target_hypothesis if target_hypothesis != '(none)' else '' }}", "bottleneck_target": "{{ my_contract.bottleneck_target | default('') }}", "evidence_stage": "{{ my_contract.evidence_stage | default('') }}", "tradeoff_class": "{{ my_contract.tradeoff_class | default('') }}", "primary_tradeoff": "{{ my_contract.primary_tradeoff | default('') }}", "next_step_intent": "{{ my_contract.next_step_intent | default('') }}", "parent_candidate": "{{ my_contract.parent_candidate | default('') }}", "parent_usage": "{{ my_contract.parent_usage | default('none') }}", "source_lane": "{{ source_lane }}", "target_lane": "{{ target_lane }}", "coverage_check": "{{ coverage_check }}", "mechanism_hypothesis_deliverable": "{{ mechanism_deliverable }}", "is_negative": <true|false>, "evidence_valence": "<positive|neutral|negative|mixed>", "failure_mode": "<empty_or_compact_failure_mode>", "disconfirming_claim_ids": []}` so the next PI synthesis can credit role-specific contributions and retrieve disconfirming evidence.
+
+{% else %}
+**(No peer contract for `{{ peer_id }}` — operating in free-explore mode. Read the cross-peer hypotheses below to choose your direction.)**
+{% endif %}
+
+{% if research_agenda.sibling_roster is defined and research_agenda.sibling_roster %}
+#### Sibling roster (coordination only)
+
+Visible siblings: {{ research_agenda.sibling_roster|length }}{% if research_agenda.sibling_roster_total_count is defined %}/{{ research_agenda.sibling_roster_total_count }}{% endif %}{% if research_agenda.sibling_contracts_omitted_count is defined and research_agenda.sibling_contracts_omitted_count %}; omitted unrelated siblings: {{ research_agenda.sibling_contracts_omitted_count }}{% endif %}
+{% if research_agenda.sibling_coordination_summary is defined and research_agenda.sibling_coordination_summary %}
+Coordination summary: {{ research_agenda.sibling_coordination_summary | tojson }}
+{% endif %}
+
+{% for sibling in research_agenda.sibling_roster %}
+{% set sibling_peer_id = sibling.peer_id if sibling.peer_id is defined else "" %}
+{% set sibling_role = sibling.role if sibling.role is defined else "" %}
+{% set sibling_target = sibling.target_hypothesis if sibling.target_hypothesis is defined else "" %}
+{% set sibling_source_lane = sibling.source_lane if sibling.source_lane is defined else "" %}
+{% set sibling_target_lane = sibling.target_lane if sibling.target_lane is defined else "" %}
+{% set sibling_intent = sibling.intent if sibling.intent is defined and sibling.intent else (sibling.intent_preference if sibling.intent_preference is defined else "") %}
+- `{{ sibling_peer_id }}`: role=`{{ sibling_role }}`, target=`{{ sibling_target }}`{% if sibling_source_lane or sibling_target_lane %}, lane=`{{ sibling_source_lane }}->{{ sibling_target_lane }}`{% endif %}{% if sibling_intent %}, intent=`{{ sibling_intent }}`{% endif %}
+{% endfor %}
+
+{% endif %}
+
+#### Relevant cross-peer hypotheses
+
+{% set cross_peer_hypotheses = research_agenda.cross_peer_hypotheses if research_agenda.cross_peer_hypotheses is defined and research_agenda.cross_peer_hypotheses else [] %}
+{% for h in cross_peer_hypotheses %}
+{% set h_id = h.id if h.id is defined else "" %}
+{% set h_claim = h.claim if h.claim is defined else "" %}
+{% set h_source_findings = h.source_findings if h.source_findings is defined and h.source_findings else [] %}
+{% set h_minimal_test = h.minimal_test if h.minimal_test is defined else "" %}
+{% set h_kill_condition = h.kill_condition if h.kill_condition is defined else "" %}
+{% set h_promote_condition = h.promote_condition if h.promote_condition is defined else "" %}
+**{{ h_id }}** — {{ h_claim }}
+
+- Source findings: {% for sf in h_source_findings %}`{{ sf.finding_id | default("") }}` (peer {{ sf.peer | default("") }}, role {{ sf.role | default("") }}); {% endfor %}
+- Minimal test: {{ h_minimal_test }}
+- Kill condition: {{ h_kill_condition }}
+- Promote condition: {{ h_promote_condition }}
+
+{% endfor %}
+
+{% if research_agenda.bridge_hypothesis is defined and research_agenda.bridge_hypothesis %}
+#### Bridge hypothesis
+
+{% set bridge = research_agenda.bridge_hypothesis %}
+{% set anchor_a = bridge.source_anchor_A if bridge.source_anchor_A is defined and bridge.source_anchor_A else {} %}
+{% set anchor_b = bridge.source_anchor_B if bridge.source_anchor_B is defined and bridge.source_anchor_B else {} %}
+**{{ bridge.id | default("") }}** — fuse `{{ anchor_a.variant | default("(unknown)") }}` ({{ anchor_a.extracted_mechanism | default("(unknown)") }}) with `{{ anchor_b.variant | default("(unknown)") }}` ({{ anchor_b.extracted_mechanism | default("(unknown)") }}).
+
+Expected Pareto movement: {{ bridge.expected_pareto_movement | default("(unspecified)") }}
+{% endif %}
+
+{% if research_agenda.anti_mainline_contract is defined and research_agenda.anti_mainline_contract %}
+#### Anti-mainline contract
+
+If your role is `anti_mainline`, you are FORBIDDEN from using these mechanisms in your variants:
+{{ research_agenda.anti_mainline_contract.forbidden_mechanisms | default([]) }}
+
+Target axes (where to push instead): {{ research_agenda.anti_mainline_contract.target_axes | default([]) }}
+{% endif %}
+
+{% if research_agenda.falsification_contract is defined and research_agenda.falsification_contract %}
+#### Falsification contract
+
+If your role is `falsifier`, your task is to disprove `{{ research_agenda.falsification_contract.target_hypothesis | default("(unspecified)") }}` via these required controls:
+{{ research_agenda.falsification_contract.required_controls | default([]) }}
+
+Decision rule: {{ research_agenda.falsification_contract.decision_rule | default("(unspecified)") }}
+{% endif %}
+
+#### Generation-level success metrics
+
+{% set success_metrics = research_agenda.success_metrics if research_agenda.success_metrics is defined and research_agenda.success_metrics else {} %}
+{% for sm in success_metrics.get("required", []) %}
+- {{ sm }}
+{% endfor %}
+
+---
+
+### Previous Generations' Top Results (for reference, do NOT default to extending these without alignment to your role contract)
+
+{% for entry in frontier_summary %}
+- **Gen {{ entry.generation_id }} #{{ entry.rank }}**: {{ entry.variant_name }}
+  - Primary metric: {{ entry.metric_value }}
+  {% if entry.metrics %}
+  - Key metrics: {{ entry.metrics }}
+  {% endif %}
+  {# R3-N3 fix: only suggest the snapshot tool when it's actually allowed
+     (server mode). In local_mode the peer doesn't have that MCP tool
+     registered — instructing it to call a missing tool wastes turns. #}
+  {% if entry.finding_id and not local_mode %}
+  - Snapshot available: `mcp__prior-work-tools__download_snapshot("{{ entry.finding_id }}")`
+  {% endif %}
+{% endfor %}
+
+{% if incubator_top_k is defined and (incubator_top_k or validation_candidate_top_k or diagnostic_control_top_k) %}
+### Strong Signal Visibility
+
+These compact views separate what can be used as a parent from what needs
+validation or diagnosis. Do not collapse these scopes.
+
+{% if incubator_top_k %}
+**Parentable incubator signals** (long-term, lower-admission durable candidates):
+{% for entry in incubator_top_k %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }}{% if entry.frontier_lane %} lane=`{{ entry.frontier_lane }}`{% endif %}{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %}
+{% endfor %}
+{% endif %}
+{% if validation_candidate_top_k %}
+**Revalidate-only signals** (not clean parents yet):
+{% for entry in validation_candidate_top_k %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }}{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %} next=`{{ entry.recommended_next_step|default("complete_scored_validation") }}`
+{% endfor %}
+{% endif %}
+{% if diagnostic_control_top_k %}
+**Diagnostic-only signals**:
+{% for entry in diagnostic_control_top_k %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }}{% if entry.frontier_lane %} lane=`{{ entry.frontier_lane }}`{% endif %}{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %}
+{% endfor %}
+{% endif %}
+
+{% endif %}
+
+{% if validation_candidates is defined and validation_candidates %}
+### Validation Signals (non-frontier candidates)
+
+These compact signals were intentionally kept out of durable frontier/Gems
+state. Do not treat them as clean winners or implementation parents. Use them
+only for focused validation, repair, falsification, comparison, ablation, or
+full task-defined scoring.
+
+{% for entry in validation_candidates %}
+{% set mechanism_family = entry.mechanism_family|default("") %}
+{% set intervention_surface = entry.intervention_surface|default("") %}
+{% set intent = entry.intent|default("") %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }} status=`{{ entry.artifact_signal_status|default(entry.result_status|default("?")) }}` stage=`{{ entry.evidence_stage|default("?") }}`
+  next=`{{ entry.recommended_next_step|default("complete_scored_validation_before_frontier_or_gems") }}` reason=`{{ entry.exclusion_reason|default("non_durable_signal") }}`{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %}
+  {% if mechanism_family or intervention_surface or intent %}design={{ mechanism_family }}/{{ intervention_surface }}/{{ intent }}{% endif %}
+{% endfor %}
+{% if validation_candidates_meta is defined and validation_candidates_meta and validation_candidates_meta.truncated %}
+Additional validation signals exist beyond this compact list; call `get_frontier`
+for the full candidate view before assuming the signal set is exhausted.
+{% endif %}
+
+{% endif %}
+
+{% if research_loop_control is defined and research_loop_control %}
+### Research Loop Control Feedback
+
+This is advisory feedback from the last completed generation boundary. Use it
+to keep the next generation productive, but do not treat it as a hard
+constraint unless your task prompt says so.
+
+{% if research_loop_control.peer_mix is defined %}
+- Peer mix: {{ research_loop_control.peer_mix | tojson }}
+{% endif %}
+{% if research_loop_control.stop_audit is defined %}
+- Stop audit: {{ research_loop_control.stop_audit | tojson }}
+{% endif %}
+
+{% endif %}
+
+{% if variant_hint is defined and variant_hint and variant_hint.strip() %}
+### Role-Aligned Diversity Self-Report
+
+{{ variant_hint }}
+
+{% endif %}
+
+**Reminder**: your role contract takes precedence over leaderboard chasing. Report ALL results (positive AND negative) via `mcp__evaluation-tools__share_finding`. When you publish a finding tied to your role contract, set `extra={"peer_role": "<your role>", "target_hypothesis": "<id>", "bottleneck_target": "<label>", "evidence_stage": "<task-defined stage such as smoke|scout|full_eval|replication|promotion_attempt>", "tradeoff_class": "<task-defined or generic tradeoff label>", "primary_tradeoff": "<quality_vs_cost|quality_vs_robustness|quality_vs_complexity|evidence_vs_runtime|custom>", "next_step_intent": "<intent>", "parent_candidate": "<optional>", "parent_usage": "<none|preserve|repair|validate|validation|complete_validation|complete_scored_validation|stress_validate|falsify|compare|ablate|ablation|ablate_or_falsify|ablation_followup|audit>", "source_lane": "<optional>", "target_lane": "<optional>", "coverage_check": "<optional>", "mechanism_hypothesis_deliverable": "<optional>", "is_negative": <true|false>, "evidence_valence": "<positive|neutral|negative|mixed>", "failure_mode": "<empty_or_compact_failure_mode>", "disconfirming_claim_ids": []}` so the next PI synthesis can credit role-specific contributions and retrieve disconfirming evidence. If `parent_candidate` names a validation candidate, use `parent_usage` such as `validate`, `complete_validation`, `repair`, `stress_validate`, `falsify`, `ablate`, or `audit`; do not mark that parent as `none` or `preserve`.
+
+{% else %}
+{% set has_strong_signal_views = (incubator_top_k is defined and incubator_top_k) or (validation_candidate_top_k is defined and validation_candidate_top_k) or (diagnostic_control_top_k is defined and diagnostic_control_top_k) %}
+{% set has_validation_signals = validation_candidates is defined and validation_candidates %}
+{% set has_research_loop_control = research_loop_control is defined and research_loop_control %}
+{% if frontier_summary or has_strong_signal_views or has_validation_signals or has_research_loop_control %}
+{% if frontier_summary %}
+### Previous Generations' Top Results
+
+{% for entry in frontier_summary %}
+- **Gen {{ entry.generation_id }} #{{ entry.rank }}**: {{ entry.variant_name }}
+  - Primary metric: {{ entry.metric_value }}
+  {% if entry.metrics %}
+  - Key metrics: {{ entry.metrics }}
+  {% endif %}
+  {# R3-N3 fix: only suggest the snapshot tool when it's actually allowed
+     (server mode). In local_mode the peer doesn't have that MCP tool
+     registered — instructing it to call a missing tool wastes turns. #}
+  {% if entry.finding_id and not local_mode %}
+  - Snapshot available: `mcp__prior-work-tools__download_snapshot("{{ entry.finding_id }}")`
+  {% endif %}
+{% endfor %}
+
+{% endif %}
+
+{% if incubator_top_k is defined and (incubator_top_k or validation_candidate_top_k or diagnostic_control_top_k) %}
+### Strong Signal Visibility
+
+These compact views separate what can be used as a parent from what needs
+validation or diagnosis. Do not collapse these scopes.
+
+{% if incubator_top_k %}
+**Parentable incubator signals**:
+{% for entry in incubator_top_k %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }}{% if entry.frontier_lane %} lane=`{{ entry.frontier_lane }}`{% endif %}{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %}
+{% endfor %}
+{% endif %}
+{% if validation_candidate_top_k %}
+**Revalidate-only signals**:
+{% for entry in validation_candidate_top_k %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }}{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %} next=`{{ entry.recommended_next_step|default("complete_scored_validation") }}`
+{% endfor %}
+{% endif %}
+{% if diagnostic_control_top_k %}
+**Diagnostic-only signals**:
+{% for entry in diagnostic_control_top_k %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }}{% if entry.frontier_lane %} lane=`{{ entry.frontier_lane }}`{% endif %}{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %}
+{% endfor %}
+{% endif %}
+
+{% endif %}
+
+{% if validation_candidates is defined and validation_candidates %}
+### Validation Signals (non-frontier candidates)
+
+These compact signals were intentionally kept out of durable frontier/Gems
+state. Do not treat them as clean winners or implementation parents. Use them
+only for focused validation, repair, falsification, comparison, ablation, or
+full task-defined scoring.
+
+{% for entry in validation_candidates %}
+{% set mechanism_family = entry.mechanism_family|default("") %}
+{% set intervention_surface = entry.intervention_surface|default("") %}
+{% set intent = entry.intent|default("") %}
+{% set effort_ratio = entry.effort_ratio|default("") %}
+{% set coverage_ratio = entry.coverage_ratio|default("") %}
+- gen{{ entry.generation_id|default("?") }}: `{{ entry.variant_name|default("?") }}` metric={{ entry.metric_name|default("?") }}={{ entry.metric_value|default("?") }} status=`{{ entry.artifact_signal_status|default(entry.result_status|default("?")) }}` stage=`{{ entry.evidence_stage|default("?") }}`
+  next=`{{ entry.recommended_next_step|default("complete_scored_validation_before_frontier_or_gems") }}` reason=`{{ entry.exclusion_reason|default("non_durable_signal") }}`{% if effort_ratio != "" or coverage_ratio != "" %} maturity=effort:{{ effort_ratio|default("?") }},coverage:{{ coverage_ratio|default("?") }}{% endif %}
+  {% if mechanism_family or intervention_surface or intent %}design={{ mechanism_family }}/{{ intervention_surface }}/{{ intent }}{% endif %}
+{% endfor %}
+{% if validation_candidates_meta is defined and validation_candidates_meta and validation_candidates_meta.truncated %}
+Additional validation signals exist beyond this compact list; call `get_frontier`
+for the full candidate view before assuming the signal set is exhausted.
+{% endif %}
+
+{% endif %}
+
+{% if research_loop_control is defined and research_loop_control %}
+### Research Loop Control Feedback
+
+This is advisory feedback from the last completed generation boundary. Use it
+to keep the next generation productive, but do not treat it as a hard
+constraint unless your task prompt says so.
+
+{% if research_loop_control.peer_mix is defined %}
+- Peer mix: {{ research_loop_control.peer_mix | tojson }}
+{% endif %}
+{% if research_loop_control.stop_audit is defined %}
+- Stop audit: {{ research_loop_control.stop_audit | tojson }}
+{% endif %}
+
+{% endif %}
+
+### Your Exploration Mandate
+
+{{ variant_hint }}
+
+**Guidelines:**
+- If you want to build on a previous result, first download its snapshot.
+- Your goal is NOT to duplicate previous work — aim for meaningful novelty.
+- Report ALL results (including negative) via `mcp__evaluation-tools__share_finding` with `finding_type="result"`.
+- When sharing results, include the full aggregated metrics across all seeds.
+
+{% else %}
+### First Generation
+
+{% if gems_context is defined and gems_context.enabled and gems_context.gem_seeded_baseline_mode %}
+This is logical generation 0 after a Gems reset. Build from the durable Gems context while keeping exploration diverse.
+{% else %}
+This is the **first generation** — there is no prior work to build on. Explore the research direction described above. Propose a concrete approach, implement it, and evaluate thoroughly. Your results will seed the Frontier for subsequent generations.
+{% endif %}
+
+{% if variant_hint and variant_hint.strip() %}
+### Your Exploration Mandate
+
+{{ variant_hint }}
+{% endif %}
+
+{% endif %}
+{% endif %}

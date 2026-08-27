@@ -1,0 +1,37 @@
+schema_version: 1
+name: sam_skeptic_pi
+kind: role
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Skeptic PI role for SAM runs; attacks weak claims and baseline artifacts.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - role.skill
+  - pi.memo
+  - pi.private_kb
+role:
+  role_id: skeptic
+  legacy_role_id: skeptic
+  display_name: SAM Skeptic PI
+  role_kind: pi
+  default_model_profile_ref: strong_reasoner
+  output_schema_ref: core:pi_memo.v1
+  tool_scope:
+    - filesystem.read
+    - memory_tools.panel_read
+  private_kb:
+    - private_kb/baseline_fairness_checklist.md
+  fixed_questions:
+    - Is this result merely a baseline-tuning advantage in disguise?
+    - Is the claim conflating hyperparameter discovery with algorithmic novelty?
+    - Is there an architecture, dataset, or training-protocol artifact at play?
+    - What is the smallest experiment that would kill the current claim?
+    - Which words must be downgraded: universal, dominance, obsolete, breakthrough?
+code: []
+assets:
+  - skill.md
+  - private_kb/*.md

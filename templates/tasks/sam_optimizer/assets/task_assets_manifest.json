@@ -1,0 +1,31 @@
+{
+  "schema_version": "praxist.task_asset_closure.v1",
+  "task_id": "sam_optimizer",
+  "raw_dataset_packaged_with_task": false,
+  "harness": {
+    "baseline_train": "assets/harness/baseline/train.py",
+    "benchmark_runner": "assets/harness/benchmark/run_benchmark.py",
+    "sharpness_probe": "assets/harness/benchmark/sharpness_probes.py"
+  },
+  "baselines": {
+    "curated_results": "assets/baselines/results.jsonl",
+    "summary": "assets/baselines/curated_baseline_summary.md"
+  },
+  "literature": [
+    "assets/literature/recent_sam_top_venue_review_2024_2025.md"
+  ],
+  "dataset_metadata": {
+    "resolver": "assets/dataset_metadata/resolve_dataset.py",
+    "tiny_imagenet": {
+      "metadata": "assets/dataset_metadata/tiny_imagenet/metadata.json",
+      "wnids": "assets/dataset_metadata/tiny_imagenet/wnids.txt",
+      "class_names": "assets/dataset_metadata/tiny_imagenet/class_names.tsv"
+    }
+  },
+  "regression_fixtures": [
+    "assets/regression_fixtures/baselines/sgd_T3_multi_benchmark_summary.json",
+    "assets/regression_fixtures/baselines/adam_T3_multi_benchmark_summary.json",
+    "assets/regression_fixtures/baselines/sam_T3_multi_benchmark_summary.json",
+    "assets/regression_fixtures/baselines/asam_T3_multi_benchmark_summary.json"
+  ]
+}

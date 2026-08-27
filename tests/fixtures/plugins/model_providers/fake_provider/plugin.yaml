@@ -1,0 +1,27 @@
+schema_version: 1
+name: fake_provider
+kind: model_provider
+version: 0.1.0
+protocol_version: 1
+stability: experimental
+description: Offline deterministic model provider.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - provider.fake
+provider:
+  api_format: fake
+  default_model: fake-deterministic
+  cache_strategy: deterministic_no_cache
+  usage_reporting: no_provider_usage
+  model_profiles:
+    cheap_peer: fake-deterministic
+    strong_reasoner: fake-deterministic
+  compatible_model_patterns:
+    - "fake*"
+entrypoint: adapter:create_provider
+code:
+  - adapter.py
+assets: []

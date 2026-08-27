@@ -1,0 +1,26 @@
+schema_version: 1
+name: ml_literature_scout
+kind: role
+version: 0.1.0
+protocol_version: 1
+stability: template
+description: Optional machine-learning literature scout for task-owned prior-art checks.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - role.skill
+  - literature.lookup
+role:
+  role_id: literature_scout
+  legacy_role_id: literature_scout
+  display_name: ML Literature Scout
+  role_kind: scout
+  default_model_profile_ref: cheap_peer
+  output_schema_ref: core:literature_evidence.v1
+  tool_scope:
+    - literature_lookup.optional
+code: []
+assets:
+  - skill.md

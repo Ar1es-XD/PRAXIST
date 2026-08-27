@@ -1,0 +1,38 @@
+schema_version: 1
+name: reviewer_stub
+kind: workflow_stage
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Disabled-by-default local reviewer stage for artifact/provenance consistency checks.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - workflow.stub
+  - workflow.optional
+  - workflow.reviewer.local_artifact_check
+contracts:
+  enabled_by_default: false
+  inputs:
+    - manuscript_artifact
+    - evidence_refs
+    - artifact_index
+    - trajectory
+    - run_summary
+  outputs:
+    - review_artifact
+    - reviewer_findings
+  artifact_schema: core:review_artifact.v1
+  execution_modes:
+    - local
+    - artifact
+    - artifacts
+    - run_artifact
+    - claim_check
+    - review
+  promotion_effect: none
+code:
+  - adapter.py
+assets: []

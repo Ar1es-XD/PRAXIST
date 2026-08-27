@@ -1,0 +1,4 @@
+interface:
+  display_name: "Praxist Scientific Research"
+  short_description: "No-key literature, database, and open-access context for Praxist tasks"
+  default_prompt: "Use $praxist-scientific-research to gather source-backed metrics, benchmarks, open-access provenance, prior art, and high-value research directions for this Praxist task."

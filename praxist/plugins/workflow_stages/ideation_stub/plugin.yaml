@@ -1,0 +1,27 @@
+schema_version: 1
+name: ideation_stub
+kind: workflow_stage
+version: 0.1.0
+protocol_version: 1
+stability: v1_stable
+description: Disabled-by-default ideation workflow stub.
+compatibility:
+  praxist_core: ">=0.1.0,<1.0"
+  python: ">=3.11"
+dependencies: []
+capabilities:
+  - workflow.stub
+  - workflow.optional
+contracts:
+  enabled_by_default: false
+  inputs:
+    - seed_prompt
+    - constraints
+    - prior_artifacts
+  outputs:
+    - research_plan
+    - task_draft
+    - initial_agenda
+  artifact_schema: core:research_plan_stub.v1
+code: []
+assets: []

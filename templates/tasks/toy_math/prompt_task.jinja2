@@ -1,0 +1,28 @@
+## Toy Math Prompt Block
+
+Task: {{ task_spec.task_name }}
+
+### Research Direction
+
+{{ task_spec.research_direction }}
+
+### Scope
+
+- Propose simple integer-sequence conjectures or counterexample patterns.
+- Record the bounded search range and deterministic checks used.
+- Prefer small, auditable evidence over broad unsupported claims.
+- Treat this checked-in template as a resolve-only fixture unless the task owner
+  replaces the placeholder evaluator and assets.
+- Publish evidence through Praxist findings and task result summaries; do not
+  hand-write frontier, Gems, prompt-layout, memory, or diagnostic state.
+  Leaderboards and PI evidence packs are derived context, not current truth.
+- For expanded real runs, the evaluator should route ordinary complete
+  protocol-passed non-suspect conjectures through the shared `performance`
+  source. Confirmed and lower-admission incubator targets independently select
+  from it; Peers must not guess or overwrite the final target lane.
+
+### Expected Output
+
+Publish structured findings that include the conjecture or counterexample,
+deterministic score, clarity notes, coverage notes, evidence paths, and exact
+`effort_ratio` / `coverage_ratio` fields for scored results.

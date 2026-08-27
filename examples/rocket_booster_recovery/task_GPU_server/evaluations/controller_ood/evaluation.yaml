@@ -1,0 +1,48 @@
+schema_version: 1
+name: rocket_booster_recovery_controller_ood
+kind: evaluation
+version: 2.0.2
+protocol_version: 2
+stability: frozen
+description: >-
+  Deterministic GPU evaluation of classical Rocket Booster Recovery controller variants on a
+  disjoint three-stratum landing validation set and a frozen roll-disturbance
+  set. Landing scoring ends at interpolated first leg contact, before gear
+  spring/damper response, and uses exactly one landing-success predicate.
+compatibility:
+  praxist_core: ">=0.3.0,<1.0"
+  python: ">=3.11"
+dependencies:
+  - jax==0.9.2
+  - numpy==2.4.6
+capabilities:
+  - evaluation.control
+  - evaluation.gpu
+  - evaluation.multi_metric_pareto
+  - evaluation.evidence_maturity
+  - evaluation.first_contact_safety
+evaluation:
+  primary_metrics: [landing_success_rate]
+  evidence_stages: [canary, development, roll_diagnostic, complete]
+  staged_protocols:
+    canary:
+      ranking_allowed: false
+      parent_promotion_allowed: false
+      purpose: public_interface_and_wiring_check
+    development:
+      ranking_allowed: true
+      parent_promotion_allowed: false
+      purpose: fast_iteration_on_the_precommitted_public_development_set
+    roll_diagnostic:
+      ranking_allowed: false
+      parent_promotion_allowed: false
+      purpose: isolated_roll_rcs_disturbance_rejection
+    complete:
+      ranking_allowed: true
+      parent_promotion_allowed: true
+      purpose: full_close_grade_landing_and_roll_protocol_with_separate_confirmed_performance_gate
+agent_entrypoint: run.py
+code: [run.py, evaluator.py]
+assets:
+  - ../../assets/dataset_metadata/validation_protocol.json
+  - ../../assets/task_assets_manifest.json
